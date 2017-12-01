@@ -6,8 +6,6 @@
     "extends": "airbnb-base",
     "rules": {
       "no-restricted-syntax": ["off", "BinaryExpression[operator='in']"],
-      "import/imports-first": 0,
-      "import/no-dynamic-require": 0,
       "no-use-before-define": ["error", { "functions": false }],
       "no-unused-vars": 0,
       "no-console": 0,
