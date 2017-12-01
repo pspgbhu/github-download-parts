@@ -30,6 +30,8 @@ function Repo(info) {
     user = arr[0];
     repo = arr[1];
     ref = arr[2] || 'master';
+    downloadType = 'git';
+    log = false;
 
   } else if (typeof info === 'object') {
     if (!info.user || !info.ref) {
@@ -40,22 +42,25 @@ function Repo(info) {
     repo = info.repo[1];
     ref = info.ref[2] || 'master';
     downloadType = info.downloadType === 'zip' ? 'zip' : 'git';
-    log = typeof info.log === 'boolean' ? log : true;
+    log = typeof info.log === 'boolean' ? log : false;
+
+  } else {
+    throw new Error('[Repo constructor] Invalid parameter!');
   }
 
   this.user = user;
   this.repo = repo;
-  this.ref = ref || 'master';
+  this.ref = ref;
+  this.downloadType = downloadType;
+  this.log = log;
   this.tree = { __files__: [] };
-  this.downloadType = downloadType || 'git';
-  this.log = typeof log === 'boolean' ? log : true;
 
   this.targetDir = '';
   this._combineConfig();
 }
 
-Repo.config = {};
 
+Repo.config = {};
 Repo.setConfig = function (cfg) {
   if (!cfg) return;
 
@@ -181,6 +186,7 @@ Repo.prototype._getDownloadQueue = function (repoResolvePath) {
           var repoAbsolutePath = repoResolvePath + '/' + item.path;
 
           if (type === 'blob') {
+
             var fileInfo = {
               filename,
               path: repoAbsolutePath,
@@ -266,6 +272,7 @@ Repo.prototype._getSha = function (target) {
 
 Repo.prototype._downloadRepo = function () {
   const zipUrl = `https://github.com/${this.user}/${this.repo}/archive/${this.ref}.zip`;
+
   download(zipUrl, this.targetDir, {extract: true}).then(() => {
     this.console.log('download repo success!');
   }).catch(e => {
@@ -284,6 +291,7 @@ Repo.mkdirSync = (target, chmod = 0755) => {
 
   for (let i = 0; i < array.length; i++) {
     const verifyPath = prefix + array.slice(0, i + 1).join(path.sep) + path.sep;
+
     try {
       fs.accessSync(verifyPath);
       continue;
