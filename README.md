@@ -1,6 +1,6 @@
 # github-download-parts
 
-Not only download the whole repo in github, but also it is able to download parts of repo!
+Not only download the whole repo in github, but also it is able to download parts of repository!
 
 ## Usage
 ```javascript
