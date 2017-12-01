@@ -1,6 +1,6 @@
 {
   "name": "github-download-parts",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Be able to downloads parts of github repo !",
   "main": "index.js",
   "author": "pspgbhu <brotherchun001@gmial.com> (http://pspgbhu.me)",
