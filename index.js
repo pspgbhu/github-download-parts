@@ -5,7 +5,7 @@
  * https://developer.github.com/v3/git/trees/#get-a-tree-recursively
  * https://developer.github.com/v3/repos/contents
  *
- * @author pspgbhu <brotherchun001@gmail.com>
+ * @author pspgbhu <brotherchun001@gmail.com> (http://pspgbhu.me)
  */
 
 
@@ -17,20 +17,20 @@ const URL = require('url').URL;
 const path = require('path');
 
 
-function Repo(info, cfg = {}) {
+function Repo(info) {
   let user, repo, ref;
+  let downloadType, log;
 
   if (typeof info === 'string') {
     const arr = info.split('/');
 
     if (arr.length < 2) {
       throw new Error('[Repo constructor] Invalid parameter!');
-      return;
     }
 
-    user = infoList[0];
-    repo = infoList[1];
-    ref = infoList[2] || 'master';
+    user = arr[0];
+    repo = arr[1];
+    ref = arr[2] || 'master';
 
   } else if (typeof info === 'object') {
     if (!info.user || !info.ref) {
@@ -40,55 +40,48 @@ function Repo(info, cfg = {}) {
     user = info.user;
     repo = info.repo[1];
     ref = info.ref[2] || 'master';
+    downloadType = info.downloadType === 'zip' ? 'zip' : 'git';
+    log = typeof info.log === 'boolean' ? log : true;
   }
 
-  if (typeof info !== 'string' || typeof info !== 'object') {
-    throw new Error('[Repo constructor] Invalid parameter!');
-    return;
-  }
-
-  if (typeof info === 'string' && info.split('/').length < 2) {
-    throw new Error('[Repo constructor] Invalid parameter!');
-    return;
-  }
-
-  if (typeof info === 'object') {
-
-  }
-
-  this.cfg = Object.assign({}, Repo.cfg, cfg);
-
-  infoList = info.split('/');
   this.user = user;
   this.repo = repo;
   this.ref = ref || 'master';
   this.tree = { __files__: [] };
+  this.downloadType = downloadType || 'git';
+  this.log = typeof log === 'boolean' ? log : true;
+
   this.targetDir = '';
-
-  this._solveCfg();
+  this._combineConfig();
 }
 
+Repo.config = {};
 
-// default config.
-Repo.cfg = {
-  log: true,
-}
-
-Repo.config = function (cfg) {
+Repo.setConfig = function (cfg) {
   if (!cfg) return;
 
   for (const key in cfg) {
     if (Object.prototype.hasOwnProperty.call(cfg, key)) {
       const value = cfg[key];
-      Repo[key] = value;
+      Repo.config[key] = value;
     }
   }
 }
 
 
-Repo.prototype._solveCfg = function () {
+Repo.prototype._combineConfig = function () {
+  const ignore = [];
+
+  for (const key in Repo.config) {
+    if (Object.prototype.hasOwnProperty.call(Repo.config, key)) {
+      const value = Repo.config[key];
+      if (key in ignore) continue;
+      this[key] = value;
+    }
+  }
+
   this.console = {};
-  if (this.cfg.log) {
+  if (this.log) {
     this.console = global.console;
   } else {
     this.console = {
@@ -305,4 +298,6 @@ Repo.mkdirSync = (target, chmod = 0755) => {
   }
 }
 
-module.exports = Repo;
+// module.exports = Repo;
+let repo = new Repo('alexmingoia/koa-router');
+repo.download('alexmingoia');
