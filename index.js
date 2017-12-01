@@ -9,87 +9,166 @@
  */
 
 
-var fs = require('fs');
-var download = require('download');
-var request = require('superagent');
-var chalk = require('chalk');
-var URL = require('url').URL;
+const fs = require('fs');
+const download = require('download');
+const request = require('superagent');
+const chalk = require('chalk');
+const URL = require('url').URL;
+const path = require('path');
 
 
-function Repo(info) {
-  if (typeof info !== 'string' || info.split('/').length < 2) {
+function Repo(info, cfg = {}) {
+  let user, repo, ref;
+
+  if (typeof info === 'string') {
+    const arr = info.split('/');
+
+    if (arr.length < 2) {
+      throw new Error('[Repo constructor] Invalid parameter!');
+      return;
+    }
+
+    user = infoList[0];
+    repo = infoList[1];
+    ref = infoList[2] || 'master';
+
+  } else if (typeof info === 'object') {
+    if (!info.user || !info.ref) {
+      throw new Error('[Repo constructor] Invalid parameter!');
+    }
+
+    user = info.user;
+    repo = info.repo[1];
+    ref = info.ref[2] || 'master';
+  }
+
+  if (typeof info !== 'string' || typeof info !== 'object') {
     throw new Error('[Repo constructor] Invalid parameter!');
     return;
   }
 
+  if (typeof info === 'string' && info.split('/').length < 2) {
+    throw new Error('[Repo constructor] Invalid parameter!');
+    return;
+  }
+
+  if (typeof info === 'object') {
+
+  }
+
+  this.cfg = Object.assign({}, Repo.cfg, cfg);
+
   infoList = info.split('/');
-  this.user = infoList[0];
-  this.repo = infoList[1];
-  this.ref = infoList[2] || 'master';
+  this.user = user;
+  this.repo = repo;
+  this.ref = ref || 'master';
   this.tree = { __files__: [] };
-  this.rootDir = '';
+  this.targetDir = '';
+
+  this._solveCfg();
 }
 
-Repo.prototype.download = function (targetDir, path = '') {
-  this.rootDir = targetDir || '';
 
-  if (targetDir && typeof targetDir === 'string') {
-    var dir = /(.*)\/$/.exec(targetDir);
-    this.rootDir = dir && dir.length ? dir[1] : targetDir;
+// default config.
+Repo.cfg = {
+  log: true,
+}
+
+Repo.config = function (cfg) {
+  if (!cfg) return;
+
+  for (const key in cfg) {
+    if (Object.prototype.hasOwnProperty.call(cfg, key)) {
+      const value = cfg[key];
+      Repo[key] = value;
+    }
   }
+}
 
-  if (typeof path === 'string' && path !== '') {
-    this._downloadDir(path);
+
+Repo.prototype._solveCfg = function () {
+  this.console = {};
+  if (this.cfg.log) {
+    this.console = global.console;
   } else {
-    // download all repo;
+    this.console = {
+      log: function() {},
+      error: function() {},
+    }
   }
 }
 
 
-Repo.prototype._downloadDir = function (targetPath) {
-  var regPath = /(.*)\/$/.exec(targetPath);
-  var resolvePath = regPath && regPath.length ? regPath[1] : targetPath;
+/**
+ *
+ * @param {String} targetDir
+ * Files will be downloaded to this dir
+ *
+ * @param {String} path
+ * If path has a value, it will download parts of repo that according the path.
+ * If path has no value, it will download the whole repo.
+ */
+Repo.prototype.download = function (targetDir = '', repoParts = '') {
+  if (typeof targetDir !== 'string') {
+    throw new Error('You must pass a String as the first parameter.');
+  }
+  this.targetDir = path.resolve(targetDir);
 
-  var pathArr = /\w.*/.exec(resolvePath)[0].split('/');
+  // Donwload parts of repo
+  if (repoParts !== '') {
+    this._downloadParts(repoParts);
 
-  this._getDownloadQueue(resolvePath).then((downloadQueue) => {
+  // Download the whole repo
+  } else {
+    this._downloadRepo();
+  }
+}
+
+
+Repo.prototype._downloadParts = function (repoParts) {
+  var regPath = /(.*)\/$/.exec(repoParts);
+  var repoResolvePath = regPath && regPath.length ? regPath[1] : repoParts;
+
+  var pathArr = /\w.*/.exec(repoResolvePath)[0].split('/');
+
+  this._getDownloadQueue(repoResolvePath).then((downloadQueue) => {
     downloadQueue.forEach(item => {
       var url = item.downloadUrl;
-      var path = this.rootDir + '/' + item.path;
 
       Repo.mkdirSync(item.dirPath);
 
-      console.log(`downloading ${item.filename} ...`);
+      this.console.log(`Downloading ${item.filename} ...`);
       download(url).then(data => {
         fs.writeFile(`${item.dirPath}/${item.filename}`, data, err => {
           if (err) {
-            console.error(`file '${item.filename} download error!'`);
+            this.console.error(`file '${item.filename} download error!'`);
             return;
           };
-          console.log(`downloaded ${item.filename} success!`);
+          this.console.log(`Downloaded ${item.filename} success!`);
         });
       }).catch(e => {
-        console.error(`file '${item.filename} download error!'`, e);
+        this.console.error(`file '${item.filename} download error!'`, e);
       });
     });
   }).catch(e => {
-    console.error(e);
+    this.console.error(e);
   });
 }
 
 
-Repo.prototype._getTree = function () {
+Repo.prototype._getDownloadQueue = function (repoResolvePath) {
 
   return new Promise((resolve, reject) => {
 
-    this._getSha().then(sha => {
+    this._getSha(repoResolvePath).then(sha => {
 
       var api = `https://api.github.com/repos/${this.user}/${this.repo}/git/trees/${sha}?recursive=1`;
 
+      this.console.log('Getting the files tree...');
       request(api).end((err, response) => {
 
         if (err) {
-          console.error(err);
+          this.console.error(err);
           reject(err);
           return;
         }
@@ -97,70 +176,7 @@ Repo.prototype._getTree = function () {
         var res = JSON.parse(response.text);
 
         if (res.message) {
-          console.error(res.message);
-          reject(err);
-          return;
-        }
-
-        res.tree.forEach(item => {
-          var type = item.type;
-          var path = item.path;
-          var pathArr = item.path.split('/');
-
-          if (type === 'blob' && pathArr.length === 1) {
-            this.tree.__files__.push(path);
-
-          } else if (type === 'blob') {
-            var step = this.tree;
-
-            for (var i = 0; i < pathArr.length - 1; i++) {
-              step = step[pathArr[i]];
-            }
-            step.__files__.push(pathArr.concat().pop());
-
-          } else if (type === 'tree') {
-            var step = this.tree;
-
-            for (var i = 0; i < pathArr.length; i++) {
-              if (i < pathArr.length - 1) {
-                step = step[pathArr[i]];
-              } else {
-                step[pathArr[i]] = { __files__: [] };
-              }
-            }
-          }
-        });
-
-        resolve();
-
-      });
-    }).catch(e => {
-      console.error(e);
-    });
-  });
-}
-
-
-Repo.prototype._getDownloadQueue = function (resolvePath) {
-
-  return new Promise((resolve, reject) => {
-
-    this._getSha(resolvePath).then(sha => {
-
-      var api = `https://api.github.com/repos/${this.user}/${this.repo}/git/trees/${sha}?recursive=1`;
-
-      request(api).end((err, response) => {
-
-        if (err) {
-          console.error(err);
-          reject(err);
-          return;
-        }
-
-        var res = JSON.parse(response.text);
-
-        if (res.message) {
-          console.error(res.message);
+          this.console.error(res.message);
           reject(err);
           return;
         }
@@ -170,18 +186,18 @@ Repo.prototype._getDownloadQueue = function (resolvePath) {
           var type = item.type;
           var needPopDirPath = item.path.split('/');
           var filename = needPopDirPath.pop();
-          var absolutePath = resolvePath + '/' + item.path;
+          var repoAbsolutePath = repoResolvePath + '/' + item.path;
 
           if (type === 'blob') {
             var fileInfo = {
               filename,
-              path: absolutePath,
-              dirPath: this.rootDir + '/' + needPopDirPath.join('/'),
+              path: repoAbsolutePath,
+              dirPath: this.targetDir + path.sep + needPopDirPath.join(path.sep),
               downloadUrl: '',
             };
 
             fileInfo.downloadUrl =
-            `https://raw.githubusercontent.com/${this.user}/${this.repo}/${this.ref}/${absolutePath}`;
+            `https://raw.githubusercontent.com/${this.user}/${this.repo}/${this.ref}/${repoAbsolutePath}`;
 
             queue.push(fileInfo);
           }
@@ -191,7 +207,7 @@ Repo.prototype._getDownloadQueue = function (resolvePath) {
 
       });
     }).catch(e => {
-      console.error(e);
+      this.console.error(e);
     });
   });
 }
@@ -201,12 +217,10 @@ Repo.prototype._getSha = function (target) {
   if (!target) {
     var api = `https://api.github.com/repos/${this.user}/${this.repo}/branches/${this.ref}`;
 
-    console.log('getsha', api);
-
     return new Promise((resolve, reject) => {
       request(api).end((err, response) => {
         if (err) {
-          console.log('_getSha !target Error', err);
+          this.console.log('_getSha !target Error', err);
           reject(err);
           return;
         }
@@ -227,9 +241,10 @@ Repo.prototype._getSha = function (target) {
     var api = `https://api.github.com/repos/${this.user}/${this.repo}/contents/${targetDir}?ref=${this.ref}`;
 
     return new Promise((resolve, reject) => {
+      this.console.log('Getting the sha of repo...');
       request(api).end((err, response) => {
         if (err) {
-          console.error('_getSha target Error', err.status);
+          this.console.error('_getSha target Error', err.status);
           reject(err);
           return;
         }
@@ -256,96 +271,38 @@ Repo.prototype._getSha = function (target) {
   }
 }
 
-Repo.prototype._getAimInfo = function(resolvePath) {
-  var api = '';
-  var info = null;
-  var aim = '';
 
-  return new Promise((resolve, reject) => {
-
-    if (resolvePath.length < 1) {
-      reject('[Repo.prototype._getSha] The resolvePath.length < 1');
-    }
-
-    if (resolvePath.length = 1) {
-      api = `https://api.github.com/repos/${this.user}/${this.repo}/contents/?ref=${this.ref}`;
-      aim = resolvePath[0];
-    } else {
-      var shaPath = resolvePath.concat();
-      aim = shaPath.pop();
-      api = `https://api.github.com/repos/${this.user}/${this.repo}/contents/${shaPath.join('/')}?ref=${this.ref}`;
-    }
-
-    console.log('_getAimInfo', api);
-
-    request.get(api).end(function(err, response) {
-      if (err) {
-        throw new Error('Download error!' + err);
-      }
-
-      var res = JSON.parse(response.text);
-
-      // ERROR
-      if (!Array.isArray) {
-        if (Object.prototype.toString.call(res) === '[object Object]' && res.message) {
-          reject(err);
-          return;
-        } else {
-          reject(err);
-        }
-      }
-
-      res.forEach(function(item) {
-        if (item.name === aim) {
-          info = item;
-        }
-      }, this);
-
-      resolve(info);
-    });
-  });
-};
-
-
-Repo.prototype._downloadFile = function() {
-
-};
-
-
-Repo.mkdirSync = (path, chmod = 0777, encoding = 'UTF-8') => {
-  if (!path || typeof path !== 'string') {
-    return;
-  }
-
-  if(fs.existsSync(path)) {
-    // console.log('dir exists there!');
-    return;
-  };
-
-  var decollator = '';
-
-  // 兼容 windows
-  if (path.indexOf('/') > -1) {  // Unix
-    decollator = '/';
-  } else if (path.indexOf('\\') > -1){ // windows
-    decollator = '\\';
-  } else {  // 单一目录
-    fs.mkdirSync(path, chmod);
-  }
-
-  var pathArr = path.split(decollator);
-  var pathStr = '';
-
-  pathArr.forEach(p => {
-    pathStr += p;
-    if(fs.existsSync(pathStr)) {
-      return;
-    };
-    fs.mkdirSync(pathStr);
+Repo.prototype._downloadRepo = function () {
+  const zipUrl = `https://github.com/${this.user}/${this.repo}/archive/${this.ref}.zip`;
+  download(zipUrl, this.targetDir, {extract: true}).then(() => {
+    this.console.log('download repo success!');
+  }).catch(e => {
+    this.console.error('download repo error!', e);
   });
 }
 
 
-var repo = new Repo('jd-smart-fe/welink-template');
-repo.download('test', 'fridge-template/build');
+Repo.mkdirSync = (target, chmod = 0755) => {
+  if (!target || typeof target !== 'string' || target === '') {
+    return;
+  }
 
+  const prefix = path.isAbsolute(target) ? path.sep : '';
+  const array = target.split(path.sep);
+
+  for (let i = 0; i < array.length; i++) {
+    const verifyPath = prefix + array.slice(0, i + 1).join(path.sep) + path.sep;
+    try {
+      fs.accessSync(verifyPath);
+      continue;
+    } catch (e) {
+      try {
+        fs.mkdirSync(verifyPath);
+      } catch (error) {
+        console.log(`mkdir '${verifyPath}' error!`);
+      }
+    }
+  }
+}
+
+module.exports = Repo;

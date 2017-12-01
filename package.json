@@ -1,10 +1,14 @@
 {
   "name": "github-download-parts",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Be able to downloads parts of github repo !",
   "main": "index.js",
-  "author": "pspgbhu",
+  "author": "pspgbhu <brotherchun001@gmial.com> (http://pspgbhu.me)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pspgbhu/github-download-parts"
+  },
   "dependencies": {
     "chalk": "^2.1.0",
     "download": "^6.2.5",
