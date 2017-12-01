@@ -5,6 +5,7 @@ Not only download the whole repo in github, but also it is able to download part
 ## Usage
 ```javascript
 const Repo = require('github-download-parts');
+
 const repo = new Repo('pspgbhu/github-download-parts');
 
 // download the whole repo into someone dir.
@@ -28,6 +29,9 @@ If you pass an object, `opts.user` or `opts.repo` cannot be ignored.
     The name of repository.
   - ref
     The branch of repository.
+  - downloadType: 'git' | 'zip' (!not complete)
+    The way that download the whole repository. Only work for download whole repository.
+
 
 ```javascript
 new Repo({
