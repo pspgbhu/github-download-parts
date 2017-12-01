@@ -111,44 +111,65 @@ Repo.prototype.download = function (targetDir = '', repoParts = '') {
   }
   this.targetDir = path.resolve(targetDir);
 
-  // Donwload parts of repo
-  if (repoParts !== '') {
-    this._downloadParts(repoParts);
+  return new Promise((resolve, reject) => {
+    // Donwload parts of repo
+    if (repoParts !== '') {
+      this._downloadParts(repoParts).then(function () {
+        resolve();
+      }).catch(function() {
+        reject();
+      });
 
-  // Download the whole repo
-  } else {
-    this._downloadRepo();
-  }
+    // Download the whole repo
+    } else {
+      this._downloadRepo().then(function () {
+        resolve();
+      }).catch(function() {
+        reject();
+      });
+    }
+  });
 }
 
 
 Repo.prototype._downloadParts = function (repoParts) {
   var regPath = /(.*)\/$/.exec(repoParts);
   var repoResolvePath = regPath && regPath.length ? regPath[1] : repoParts;
-
   var pathArr = /\w.*/.exec(repoResolvePath)[0].split('/');
 
-  this._getDownloadQueue(repoResolvePath).then((downloadQueue) => {
-    downloadQueue.forEach(item => {
-      var url = item.downloadUrl;
+  return new Promise((resolve, reject) => {
+    this._getDownloadQueue(repoResolvePath).then((downloadQueue) => {
+      downloadQueue.forEach((item, index) => {
+        var url = item.downloadUrl;
 
-      Repo.mkdirSync(item.dirPath);
+        Repo.mkdirSync(item.dirPath);
+        this.console.log(`Downloading ${item.filename} ...`);
 
-      this.console.log(`Downloading ${item.filename} ...`);
-      download(url).then(data => {
-        fs.writeFile(`${item.dirPath}/${item.filename}`, data, err => {
-          if (err) {
-            this.console.error(`file '${item.filename} download error!'`);
-            return;
-          };
-          this.console.log(`Downloaded ${item.filename} success!`);
+        download(url).then(data => {
+
+          fs.writeFile(`${item.dirPath}/${item.filename}`, data, err => {
+            if (err) {
+              this.console.error(`file '${item.filename} download error!'`);
+              if (index === downloadQueue.length - 1) {
+                resolve();
+              }
+              return;
+            };
+            this.console.log(`Downloaded ${item.filename} success!`);
+
+            if (index === downloadQueue.length - 1) {
+              resolve();
+            }
+          });
+
+        }).catch(e => {
+          this.console.error(`file '${item.filename} download error!'`, e);
         });
-      }).catch(e => {
-        this.console.error(`file '${item.filename} download error!'`, e);
       });
+    }).catch(e => {
+      this.console.error(e);
+      reject();
     });
-  }).catch(e => {
-    this.console.error(e);
   });
 }
 
@@ -273,10 +294,14 @@ Repo.prototype._getSha = function (target) {
 Repo.prototype._downloadRepo = function () {
   const zipUrl = `https://github.com/${this.user}/${this.repo}/archive/${this.ref}.zip`;
 
-  download(zipUrl, this.targetDir, {extract: true}).then(() => {
-    this.console.log('download repo success!');
-  }).catch(e => {
-    this.console.error('download repo error!', e);
+  return new Promise((resolve, reject) => {
+    download(zipUrl, this.targetDir, {extract: true}).then(() => {
+      this.console.log('download repo success!');
+      resolve();
+    }).catch(e => {
+      this.console.error('download repo error!', e);
+      reject();
+    });
   });
 }
 
