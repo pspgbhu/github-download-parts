@@ -305,6 +305,4 @@ Repo.mkdirSync = (target, chmod = 0755) => {
   }
 }
 
-// module.exports = Repo;
-let repo = new Repo('alexmingoia/koa-router');
-repo.download('alexmingoia');
+module.exports = Repo;
