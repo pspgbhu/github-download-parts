@@ -12,7 +12,6 @@
 const fs = require('fs');
 const download = require('download');
 const request = require('superagent');
-const chalk = require('chalk');
 const URL = require('url').URL;
 const path = require('path');
 
