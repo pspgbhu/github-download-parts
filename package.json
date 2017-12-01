@@ -9,6 +9,10 @@
     "type": "git",
     "url": "https://github.com/pspgbhu/github-download-parts"
   },
+  "scripts": {
+    "version": "git add -a",
+    "postversion": "npm publish && git push --follow-tags"
+  },
   "dependencies": {
     "chalk": "^2.1.0",
     "download": "^6.2.5",
