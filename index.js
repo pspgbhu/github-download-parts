@@ -8,17 +8,17 @@
  * @author pspgbhu <brotherchun001@gmail.com> (http://pspgbhu.me)
  */
 
-
 const fs = require('fs');
 const download = require('download');
 const request = require('superagent');
-const URL = require('url').URL;
 const path = require('path');
+const chalk = require('chalk');
 
 
 function Repo(info) {
   let user, repo, ref;
-  let downloadType, log;
+  let downloadType = 'git';
+  let debug = false;
 
   if (typeof info === 'string') {
     const arr = info.split('/');
@@ -30,8 +30,6 @@ function Repo(info) {
     user = arr[0];
     repo = arr[1];
     ref = arr[2] || 'master';
-    downloadType = 'git';
-    log = false;
 
   } else if (typeof info === 'object') {
     if (!info.user || !info.ref) {
@@ -42,7 +40,7 @@ function Repo(info) {
     repo = info.repo[1];
     ref = info.ref[2] || 'master';
     downloadType = info.downloadType === 'zip' ? 'zip' : 'git';
-    log = typeof info.log === 'boolean' ? log : false;
+    debug = typeof info.log === 'boolean' ? debug : false;
 
   } else {
     throw new Error('[Repo constructor] Invalid parameter!');
@@ -52,7 +50,7 @@ function Repo(info) {
   this.repo = repo;
   this.ref = ref;
   this.downloadType = downloadType;
-  this.log = log;
+  this.debug = debug;
   this.tree = { __files__: [] };
 
   this.targetDir = '';
@@ -85,25 +83,26 @@ Repo.prototype._combineConfig = function () {
   }
 
   this.console = {};
-  if (this.log) {
+  if (this.debug) {
     this.console = global.console;
   } else {
     this.console = {
-      log: function() {},
-      error: function() {},
+      log: function () {},
+      error: function () {},
     }
   }
 }
 
 
 /**
- *
  * @param {String} targetDir
  * Files will be downloaded to this dir
  *
  * @param {String} path
  * If path has a value, it will download parts of repo that according the path.
  * If path has no value, it will download the whole repo.
+ *
+ * @return {Promise}
  */
 Repo.prototype.download = function (targetDir = '', repoParts = '') {
   if (typeof targetDir !== 'string') {
@@ -114,180 +113,194 @@ Repo.prototype.download = function (targetDir = '', repoParts = '') {
   return new Promise((resolve, reject) => {
     // Donwload parts of repo
     if (repoParts !== '') {
-      this._downloadParts(repoParts).then(function () {
-        resolve();
-      }).catch(function() {
-        reject();
-      });
+      this.console.log('The targetDir: ', targetDir);
+      this.console.log('The repoParts: ', repoParts);
 
-    // Download the whole repo
+      this._getSha(repoParts)
+        .then(sha => {
+          if (!sha) return new Promise((resolve, reject) => reject('success'));
+          return this._getDownloadQueue(sha, repoParts)
+        })
+        .then(downloadQueue => this._downloadFiles(downloadQueue))
+        .then(() => resolve())
+        .catch(e => {
+          if (e === 'success') {
+            resolve();
+            return;
+          }
+          reject(e)
+        });
+
+      // Download the whole repo
     } else {
-      this._downloadRepo().then(function () {
-        resolve();
-      }).catch(function() {
-        reject();
-      });
+      this._downloadRepo()
+        .then(() => resolve())
+        .catch(e => reject(e));
     }
   });
 }
 
 
-Repo.prototype._downloadParts = function (repoParts) {
-  var regPath = /(.*)\/$/.exec(repoParts);
-  var repoResolvePath = regPath && regPath.length ? regPath[1] : repoParts;
-  var pathArr = /\w.*/.exec(repoResolvePath)[0].split('/');
+Repo.prototype._getSha = function (repoParts) {
+
+  // if begin with '/', will remove it.
+  // And will got the parentPath.
+  let repoPartsParent =
+    repoParts.indexOf('/') === 0
+    ? repoParts.slice(1).split('/').slice(1).join('/')
+    : repoParts.split('/').slice(1).join('/');
+
+  this.console.log('The repoParts parent: ', repoPartsParent);
+
+  var api = `https://api.github.com/repos/${this.user}/${this.repo}/contents/${repoPartsParent}?ref=${this.ref}`;
+  this.console.log('Getting the sha of files from ', api);
 
   return new Promise((resolve, reject) => {
-    this._getDownloadQueue(repoResolvePath).then((downloadQueue) => {
-      downloadQueue.forEach((item, index) => {
-        var url = item.downloadUrl;
+    request(api).end((err, response) => {
 
-        Repo.mkdirSync(item.dirPath);
-        this.console.log(`Downloading ${item.filename} ...`);
+      if (err) {
+        this.console.error('Get sha error!', err.status);
+        reject(err);
+        return;
+      }
+      this.console.log('Got the sha success.');
 
-        download(url).then(data => {
+      var res = JSON.parse(response.text);
+      if (res.message) {
+        reject(err.message);
+      }
 
-          fs.writeFile(`${item.dirPath}/${item.filename}`, data, err => {
-            if (err) {
-              this.console.error(`file '${item.filename} download error!'`);
-              if (index === downloadQueue.length - 1) {
-                resolve();
-              }
-              return;
-            };
-            this.console.log(`Downloaded ${item.filename} success!`);
+      if (!Array.isArray(res)) {
+        reject('res not an array!');
+        return;
+      }
 
-            if (index === downloadQueue.length - 1) {
-              resolve();
-            }
-          });
+      var sha = '';
 
-        }).catch(e => {
-          this.console.error(`file '${item.filename} download error!'`, e);
-        });
-      });
-    }).catch(e => {
-      this.console.error(e);
-      reject();
+      for (let index = 0; index < res.length; index++) {
+        const item = res[index];
+
+        // download single file.
+        if (item.path === repoParts && item.type === 'file') {
+          const url = `https://raw.githubusercontent.com/${this.user}/${this.repo}/${this.ref}/${repoParts}`
+          this._downloadFile(url, `${this.targetDir}/${repoParts}`)
+            .then(() => resolve())
+            .catch(e => reject(e));
+            return;
+        }
+
+        // download a dir.
+        if (item.path === repoParts) {
+          sha = item.sha;
+        }
+      }
+
+      if (sha) {
+        resolve(sha);
+      } else {
+        reject('No repoParts file or dir');
+      }
     });
   });
 }
 
 
-Repo.prototype._getDownloadQueue = function (repoResolvePath) {
-
+Repo.prototype._getDownloadQueue = function (sha, repoParts) {
   return new Promise((resolve, reject) => {
 
-    this._getSha(repoResolvePath).then(sha => {
+    var api = `https://api.github.com/repos/${this.user}/${this.repo}/git/trees/${sha}?recursive=1`;
 
-      var api = `https://api.github.com/repos/${this.user}/${this.repo}/git/trees/${sha}?recursive=1`;
+    request(api).end((err, response) => {
+      if (err) {
+        this.console.error(err);
+        reject(err);
+        return;
+      }
 
-      this.console.log('Getting the files tree...');
-      request(api).end((err, response) => {
+      var res = JSON.parse(response.text);
+      if (res.message) {
+        this.console.error(res.message);
+        reject(err);
+        return;
+      }
 
-        if (err) {
-          this.console.error(err);
-          reject(err);
-          return;
-        }
+      var queue = [];
+      res.tree.forEach(item => {
+        var type = item.type;
+        var needPopDirPath = item.path.split('/');
+        var filename = needPopDirPath.pop();
+        var repoAbsolutePath = repoParts + '/' + item.path;
 
-        var res = JSON.parse(response.text);
+        if (type === 'blob') {
 
-        if (res.message) {
-          this.console.error(res.message);
-          reject(err);
-          return;
-        }
+          var fileInfo = {
+            filename,
+            path: repoAbsolutePath,
+            dirPath: this.targetDir + path.sep + needPopDirPath.join(path.sep),
+            downloadUrl: '',
+          };
 
-        var queue = [];
-        res.tree.forEach(item => {
-          var type = item.type;
-          var needPopDirPath = item.path.split('/');
-          var filename = needPopDirPath.pop();
-          var repoAbsolutePath = repoResolvePath + '/' + item.path;
-
-          if (type === 'blob') {
-
-            var fileInfo = {
-              filename,
-              path: repoAbsolutePath,
-              dirPath: this.targetDir + path.sep + needPopDirPath.join(path.sep),
-              downloadUrl: '',
-            };
-
-            fileInfo.downloadUrl =
+          fileInfo.downloadUrl =
             `https://raw.githubusercontent.com/${this.user}/${this.repo}/${this.ref}/${repoAbsolutePath}`;
 
-            queue.push(fileInfo);
-          }
-        });
-
-        resolve(queue);
-
+          queue.push(fileInfo);
+        }
       });
-    }).catch(e => {
-      this.console.error(e);
+
+      resolve(queue);
     });
   });
 }
 
 
-Repo.prototype._getSha = function (target) {
-  if (!target) {
-    var api = `https://api.github.com/repos/${this.user}/${this.repo}/branches/${this.ref}`;
+Repo.prototype._downloadFiles = function (downloadQueue) {
+  return new Promise((resolve) => {
+    this.console.log(`Begin downloading files...`);
+    downloadQueue.forEach((item, index) => {
 
-    return new Promise((resolve, reject) => {
-      request(api).end((err, response) => {
-        if (err) {
-          this.console.log('_getSha !target Error', err);
-          reject(err);
-          return;
+      const url = item.downloadUrl;
+      const filePath = path.join(item.dirPath, item.filename);
+      this._downloadFile(url, filePath).then(() => {
+
+        this.console.log(`${filePath} download success.`);
+        // 最后一个文件
+        if (index === downloadQueue.length - 1) {
+          resolve();
         }
 
-        var res = JSON.parse(response.text);
-        if (res.message) {
-          reject(err.message);
-        }
+      }).catch(e => {
 
-        resolve(res.commit.sha);
-      });
-    });
-
-  } else {
-    var temp = target.split('/').concat();
-    var targetDir = temp.splice(0, temp.length - 1).join('/');
-
-    var api = `https://api.github.com/repos/${this.user}/${this.repo}/contents/${targetDir}?ref=${this.ref}`;
-
-    return new Promise((resolve, reject) => {
-      this.console.log('Getting the sha of repo...');
-      request(api).end((err, response) => {
-        if (err) {
-          this.console.error('_getSha target Error', err.status);
-          reject(err);
-          return;
-        }
-
-        var res = JSON.parse(response.text);
-        if (res.message) {
-          reject(err.message);
-        }
-
-        var sha = '';
-        res.forEach(item => {
-          if (item.path === target) {
-            sha = item.sha;
-          }
-        });
-
-        if (sha) {
-          resolve(sha);
-        } else {
-          reject('No target file or dir');
+        // 最后一个文件
+        if (index === downloadQueue.length - 1) {
+          resolve(e);
         }
       });
     });
-  }
+  });
+}
+
+
+Repo.prototype._downloadFile = function (url, filePath) {
+  return new Promise((resolve, reject) => {
+    if (!url) reject('Got an empty value in _downloadFile.');
+
+    mkdirSync(path.dirname(filePath));
+    download(url).then(data => {
+
+      fs.writeFile(filePath, data, err => {
+        if (err) {
+          reject(err);
+          return;
+        };
+        this.console.log(`Download file '${path.basename(filePath)}' success`);
+        resolve();
+      });
+
+    }).catch(e => {
+      this.console.log(chalk.bgRed(`File ${path.basename(filePath)} download error!'`));
+      reject(e);
+    });
+  });
 }
 
 
@@ -295,18 +308,14 @@ Repo.prototype._downloadRepo = function () {
   const zipUrl = `https://github.com/${this.user}/${this.repo}/archive/${this.ref}.zip`;
 
   return new Promise((resolve, reject) => {
-    download(zipUrl, this.targetDir, {extract: true}).then(() => {
-      this.console.log('download repo success!');
-      resolve();
-    }).catch(e => {
-      this.console.error('download repo error!', e);
-      reject();
-    });
+    download(zipUrl, this.targetDir, { extract: true })
+      .then(() => resolve())
+      .catch(e => reject(e));
   });
 }
 
 
-Repo.mkdirSync = (target, chmod = 0755) => {
+function mkdirSync(target) {
   if (!target || typeof target !== 'string' || target === '') {
     return;
   }
