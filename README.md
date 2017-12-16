@@ -51,8 +51,7 @@ new Repo('pspgbhu/github-download-parts');
 - `parts`:  The parts of github repository. it could be a file or a dir in your repository. And it will only download what you set.
 
 ## Rate Limiting
-
-**You just only could download 30 times per hour**, This because of Github API Rate Limiting.
+This because of Github API Rate Limiting,**You just only could download 30 times per hour**.
 
 Github allows 60 requests per hour, We will cost 2 requests every exec `repo.download()`.
 
