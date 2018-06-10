@@ -17,6 +17,10 @@ const path = require('path');
 
 
 function Repo(info) {
+  if (!(this instanceof Repo)) {
+    return new Repo(info);
+  }
+
   let user, repo, ref;
   let downloadType = 'git';
 
