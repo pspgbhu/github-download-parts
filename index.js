@@ -9,16 +9,16 @@
  */
 
 const fs = require('fs');
+const debug = require('debug')('repo');
 const download = require('download');
 const request = require('superagent');
 const path = require('path');
-const chalk = require('chalk');
+// const chalk = require('chalk');
 
 
 function Repo(info) {
   let user, repo, ref;
   let downloadType = 'git';
-  let debug = false;
 
   if (typeof info === 'string') {
     const arr = info.split('/');
@@ -40,7 +40,6 @@ function Repo(info) {
     repo = info.repo[1];
     ref = info.ref[2] || 'master';
     downloadType = info.downloadType === 'zip' ? 'zip' : 'git';
-    debug = typeof info.log === 'boolean' ? debug : false;
 
   } else {
     throw new Error('[Repo constructor] Invalid parameter!');
@@ -50,49 +49,11 @@ function Repo(info) {
   this.repo = repo;
   this.ref = ref;
   this.downloadType = downloadType;
-  this.debug = debug;
   this.tree = { __files__: [] };
 
   this.targetDir = '';
   this._combineConfig();
 }
-
-
-Repo.config = {};
-Repo.setConfig = function (cfg) {
-  if (!cfg) return;
-
-  for (const key in cfg) {
-    if (Object.prototype.hasOwnProperty.call(cfg, key)) {
-      const value = cfg[key];
-      Repo.config[key] = value;
-    }
-  }
-}
-
-
-Repo.prototype._combineConfig = function () {
-  const ignore = [];
-
-  for (const key in Repo.config) {
-    if (Object.prototype.hasOwnProperty.call(Repo.config, key)) {
-      const value = Repo.config[key];
-      if (key in ignore) continue;
-      this[key] = value;
-    }
-  }
-
-  this.console = {};
-  if (this.debug) {
-    this.console = global.console;
-  } else {
-    this.console = {
-      log: function () {},
-      error: function () {},
-    }
-  }
-}
-
 
 /**
  * @param {String} targetDir
@@ -104,6 +65,7 @@ Repo.prototype._combineConfig = function () {
  *
  * @return {Promise}
  */
+
 Repo.prototype.download = function (targetDir = '', repoParts = '') {
   if (typeof targetDir !== 'string') {
     throw new Error('You must pass a String as the first parameter.');
@@ -113,8 +75,8 @@ Repo.prototype.download = function (targetDir = '', repoParts = '') {
   return new Promise((resolve, reject) => {
     // Donwload parts of repo
     if (repoParts !== '') {
-      this.console.log('The targetDir: ', targetDir);
-      this.console.log('The repoParts: ', repoParts);
+      debug('%s %s', 'The targetDir:', targetDir);
+      debug('%s %s', 'The repoParts:', repoParts);
 
       this._getSha(repoParts)
         .then(sha => {
@@ -140,6 +102,27 @@ Repo.prototype.download = function (targetDir = '', repoParts = '') {
   });
 }
 
+/**
+ * @private
+ */
+
+Repo.prototype._combineConfig = function () {
+  const ignore = [];
+
+  for (const key in Repo.config) {
+    if (Object.prototype.hasOwnProperty.call(Repo.config, key)) {
+      const value = Repo.config[key];
+      if (key in ignore) continue;
+      this[key] = value;
+    }
+  }
+}
+
+
+
+/**
+ * @private
+ */
 
 Repo.prototype._getSha = function (repoParts) {
 
@@ -150,20 +133,21 @@ Repo.prototype._getSha = function (repoParts) {
     ? repoParts.slice(1).split('/').slice(1).join('/')
     : repoParts.split('/').slice(1).join('/');
 
-  this.console.log('The repoParts parent: ', repoPartsParent);
+  debug('The repoParts parent:', repoPartsParent);
 
   var api = `https://api.github.com/repos/${this.user}/${this.repo}/contents/${repoPartsParent}?ref=${this.ref}`;
-  this.console.log('Getting the sha of files from ', api);
+
+  debug('Getting the sha of files form', api);
 
   return new Promise((resolve, reject) => {
     request(api).end((err, response) => {
 
       if (err) {
-        this.console.error('Get sha error!', err.status);
+        debug('%s %o', 'Get sha error!', err.status);
         reject(err);
         return;
       }
-      this.console.log('Got the sha success.');
+      debug('Got the sha success');
 
       var res = JSON.parse(response.text);
       if (res.message) {
@@ -204,6 +188,9 @@ Repo.prototype._getSha = function (repoParts) {
   });
 }
 
+/**
+ * @private
+ */
 
 Repo.prototype._getDownloadQueue = function (sha, repoParts) {
   return new Promise((resolve, reject) => {
@@ -212,14 +199,15 @@ Repo.prototype._getDownloadQueue = function (sha, repoParts) {
 
     request(api).end((err, response) => {
       if (err) {
-        this.console.error(err);
+        debug('%s %o', 'Error:', err);
         reject(err);
         return;
       }
 
       var res = JSON.parse(response.text);
+
       if (res.message) {
-        this.console.error(res.message);
+        debug('%s %o', 'Error:', res.message);
         reject(err);
         return;
       }
@@ -252,17 +240,21 @@ Repo.prototype._getDownloadQueue = function (sha, repoParts) {
   });
 }
 
+/**
+ * @private
+ */
 
 Repo.prototype._downloadFiles = function (downloadQueue) {
   return new Promise((resolve) => {
-    this.console.log(`Begin downloading files...`);
+    debug('Begin downloading files...');
     downloadQueue.forEach((item, index) => {
+      debug('%s %o', 'downloadQueue item:', item);
 
       const url = item.downloadUrl;
       const filePath = path.join(item.dirPath, item.filename);
       this._downloadFile(url, filePath).then(() => {
 
-        this.console.log(`${filePath} download success.`);
+        debug(`${filePath} download success.`)
         // 最后一个文件
         if (index === downloadQueue.length - 1) {
           resolve();
@@ -279,6 +271,9 @@ Repo.prototype._downloadFiles = function (downloadQueue) {
   });
 }
 
+/**
+ * @private
+ */
 
 Repo.prototype._downloadFile = function (url, filePath) {
   return new Promise((resolve, reject) => {
@@ -292,17 +287,20 @@ Repo.prototype._downloadFile = function (url, filePath) {
           reject(err);
           return;
         };
-        this.console.log(`Download file '${path.basename(filePath)}' success`);
+        debug(`Download file '${path.basename(filePath)}' success`)
         resolve();
       });
 
     }).catch(e => {
-      this.console.log(chalk.bgRed(`File ${path.basename(filePath)} download error!'`));
+      debug(`File ${path.basename(filePath)} download error!'`);
       reject(e);
     });
   });
 }
 
+/**
+ * @private
+ */
 
 Repo.prototype._downloadRepo = function () {
   const zipUrl = `https://github.com/${this.user}/${this.repo}/archive/${this.ref}.zip`;
@@ -313,6 +311,19 @@ Repo.prototype._downloadRepo = function () {
       .catch(e => reject(e));
   });
 }
+
+Repo.config = {};
+Repo.setConfig = function (cfg) {
+  if (!cfg) return;
+
+  for (const key in cfg) {
+    if (Object.prototype.hasOwnProperty.call(cfg, key)) {
+      const value = cfg[key];
+      Repo.config[key] = value;
+    }
+  }
+}
+
 
 
 function mkdirSync(target) {
@@ -333,7 +344,7 @@ function mkdirSync(target) {
       try {
         fs.mkdirSync(verifyPath);
       } catch (error) {
-        console.log(`mkdir '${verifyPath}' error!`);
+        debug(`mkdir '${verifyPath}' error!`);
       }
     }
   }
