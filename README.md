@@ -1,39 +1,25 @@
 # github-download-parts
 
-Not only download the whole repo in github, but also it is able to download parts of repository!
-
-## Usage
-```javascript
-const Repo = require('github-download-parts');
-
-const repo = new Repo('pspgbhu/github-download-parts');
-
-// download the whole repo into someone dir.
-repo.download('./local-dirname');
-
-// donwload parts of the repo.
-repo.download('./local-dirname', 'index.js');
-```
+Not only download the whole repository in github, but also it is able to download a partial of repository!
 
 ## API
 
-### new Repo(opts | user/repo[/ref])
+### class: Repo(options)
 
-Create a new repo. it accept an object or string as the parameter.
+- `options<Object>`
+  - `user`: The username of github repository.
+  - `repo`: The name of repository.
+  - `ref`: The branch of repository. Default master.
 
-If you pass an object, `opts.user` and `opts.repo` are necessary.
+Or using a string options instead of object options:
 
-- **opts**
-  - **user**: The username of github repository.
-  - **repo**: The name of repository.
-  - **ref**: The branch of repository.
+- `options<String>`: The format of options string is `user/repo/ref`, such as `pspgbhu/github-download-parts/master`. And you can pass only `user/repo`, the `ref` will be default master.
 
-Or passing a string as the parameter.
-
-- **user/repo[/ref]:**
-  You can pass the string as the parameter like `'pspgbhu/github-download-parts/master'`, and the ref can be ignored.
+Create a new Repository instance.
 
 ```javascript
+const Repo = requier('github-download-parts');
+
 // Passing an object as the parameter.
 const repo = new Repo({
   user: 'pspgbhu',
@@ -44,18 +30,20 @@ const repo = new Repo({
 const repo = new Repo('pspgbhu/github-download-parts');
 ```
 
-### repo.download(dirname [, parts]);
+#### repo.download(dirname [, parts]);
 
-- **dirname**:  The local path that you want download repo to.
+- `dirname<String>`:  The local path that you want download repo to.
 
-- **parts**:  The parts of github repository. it could be a file or a dir in your repository. And it will only download what you set.
+- `parts<String>`:  The parts of github repository. it could be a file or a dir in your repository. And it will only download what you set.
 
 ```javascript
+const Repo = require('github-download-parts');
+
 // new Repo instance.
 const repo = new Repo('pspgbhu/github-download-parts');
 
 // Downloading the parts of repo into my_local_dir.
-repo.download(path.resolve(path.join('my_local_dir'), 'repo_origin_dir');
+repo.download('./my_local_dir', 'origin_repo_partial');
 ```
 
 ## Rate Limiting
