@@ -57,3 +57,8 @@ typings/
 # dotenv environment variables file
 .env
 
+# test
+test/test_target
+test/test_target_zip
+test/test_file
+test/test_file_options
