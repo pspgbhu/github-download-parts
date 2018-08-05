@@ -369,16 +369,13 @@ Repo.prototype._downloadZip = function () {
       for (let i = 0; i < files.length; i += 1) {
         const file = files[i];
         const pathArr = file.path.split(path.sep).slice(1);
-
-        if (pathArr[pathArr.length - 1] === '') {
-          pathArr.splice(pathArr.length - 1, 1, path.sep);
-        }
-
-        if (pathArr.length === 1 && pathArr[0] === path.sep) continue;
-
         const filePath = path.join(this.targetDir, ...pathArr);
 
-        debug('%o %o %o', file.path, pathArr, filePath);
+        if (pathArr[pathArr.length - 1] === '') {
+          continue;
+        }
+
+        debug('%o %o %o', file.path, filePath);
 
         promiseAll.push(fs.outputFile(filePath, file.data, { encoding: 'utf-8' }));
       }
