@@ -4,8 +4,8 @@ const fs = require('fs-extra');
 
 jest.setTimeout(1000 * 30);
 
-test('whole repo', async () => {
-  const dir = path.resolve(__dirname, 'test_target');
+test('by git', async () => {
+  const dir = path.resolve(__dirname, 'demo_target');
 
   try {
     await fs.remove(dir)
@@ -18,11 +18,15 @@ test('whole repo', async () => {
 
   fs.statSync(dir);
   fs.statSync(path.join(dir, 'index.js'));
+
+  try {
+    await fs.remove(dir)
+  } catch (err) {
+  }
 });
 
-
-test('whole repo by zip', async () => {
-  const dir = path.resolve(__dirname, 'test_target_zip');
+test('by zip', async () => {
+  const dir = path.resolve(__dirname, 'demo_target_zip');
 
   try {
     await fs.remove(dir)
@@ -35,11 +39,15 @@ test('whole repo by zip', async () => {
 
   fs.statSync(dir);
   fs.statSync(path.join(dir, 'index.js'));
+
+  try {
+    await fs.remove(dir)
+  } catch (err) {
+  }
 });
 
-
 test('single file', async () => {
-  const dir = path.resolve(__dirname, 'test_file');
+  const dir = path.resolve(__dirname, 'demo_file');
 
   try {
     await fs.remove(dir)
@@ -51,11 +59,16 @@ test('single file', async () => {
     .download(dir, 'index.js');
 
   fs.statSync(dir);
+
+  try {
+    await fs.remove(dir)
+  } catch (err) {
+  }
 });
 
 
 test('single file by set options', async () => {
-  const dir = path.resolve(__dirname, 'test_file_options');
+  const dir = path.resolve(__dirname, 'demo_file_options');
 
   try {
     await fs.remove(dir)
@@ -67,5 +80,9 @@ test('single file by set options', async () => {
     .download(dir, 'index.js');
 
   fs.statSync(dir);
-});
 
+  try {
+    await fs.remove(dir)
+  } catch (err) {
+  }
+});
