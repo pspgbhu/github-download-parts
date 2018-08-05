@@ -8,13 +8,24 @@
  * @author pspgbhu <brotherchun001@gmail.com> (http://pspgbhu.me)
  */
 
-const fs = require('fs');
+const fs = require('fs-extra');
 const debug = require('debug')('repo');
 const download = require('download');
+const decompress = require('decompress');
 const request = require('superagent');
 const path = require('path');
-// const chalk = require('chalk');
+const { exec } = require('child_process');
 
+/**
+ * @constructor
+ *
+ * @prop user         {string}
+ * @prop repo         {string}
+ * @prop ref          {string}
+ * @prop downloadType {string}
+ * @prop targetDir    {string}
+ * @prop tree         {object}
+ */
 
 function Repo(info) {
   if (!(this instanceof Repo)) {
@@ -28,7 +39,7 @@ function Repo(info) {
     const arr = info.split('/');
 
     if (arr.length < 2) {
-      throw new Error('[Repo constructor] Invalid parameter!');
+      throw new Error('[Repo constructor] Invalid parameter! Expect the first parameter look like "user/repo"');
     }
 
     user = arr[0];
@@ -36,13 +47,13 @@ function Repo(info) {
     ref = arr[2] || 'master';
 
   } else if (typeof info === 'object') {
-    if (!info.user || !info.ref) {
+    if (!info.user || !info.repo) {
       throw new Error('[Repo constructor] Invalid parameter!');
     }
 
     user = info.user;
-    repo = info.repo[1];
-    ref = info.ref[2] || 'master';
+    repo = info.repo;
+    ref = info.ref || 'master';
     downloadType = info.downloadType === 'zip' ? 'zip' : 'git';
 
   } else {
@@ -60,6 +71,29 @@ function Repo(info) {
 }
 
 /**
+ * @private
+ * @static {object}
+ */
+
+Repo.config = {};
+
+/**
+ * @public
+ * @static {Function}
+ */
+
+Repo.setConfig = function (cfg) {
+  if (!cfg) return;
+
+  for (const key in cfg) {
+    if (Object.prototype.hasOwnProperty.call(cfg, key)) {
+      const value = cfg[key];
+      Repo.config[key] = value;
+    }
+  }
+}
+
+/**
  * @param {String} targetDir
  * Files will be downloaded to this dir
  *
@@ -72,19 +106,19 @@ function Repo(info) {
 
 Repo.prototype.download = function (targetDir = '', repoParts = '') {
   if (typeof targetDir !== 'string') {
-    throw new Error('You must pass a String as the first parameter.');
+    throw new Error('The first parameter must pass a string.');
   }
   this.targetDir = path.resolve(targetDir);
 
-  return new Promise((resolve, reject) => {
-    // Donwload parts of repo
-    if (repoParts !== '') {
-      debug('%s %s', 'The targetDir:', targetDir);
-      debug('%s %s', 'The repoParts:', repoParts);
+  // download partial
+  if (repoParts !== '') {
+    debug('%s %s', 'The targetDir:', targetDir);
+    debug('%s %s', 'The repoParts:', repoParts);
 
+    return new Promise((resolve, reject) => {
       this._getSha(repoParts)
         .then(sha => {
-          if (!sha) return new Promise((resolve, reject) => reject('success'));
+          if (!sha) return Promise.reject('success');
           return this._getDownloadQueue(sha, repoParts)
         })
         .then(downloadQueue => this._downloadFiles(downloadQueue))
@@ -96,14 +130,13 @@ Repo.prototype.download = function (targetDir = '', repoParts = '') {
           }
           reject(e)
         });
+    });
 
-      // Download the whole repo
-    } else {
-      this._downloadRepo()
-        .then(() => resolve())
-        .catch(e => reject(e));
-    }
-  });
+  // Download the whole repo
+  } else {
+    debug('download the whole repo');
+    return this._downloadRepo();
+  }
 }
 
 /**
@@ -121,8 +154,6 @@ Repo.prototype._combineConfig = function () {
     }
   }
 }
-
-
 
 /**
  * @private
@@ -307,28 +338,76 @@ Repo.prototype._downloadFile = function (url, filePath) {
  */
 
 Repo.prototype._downloadRepo = function () {
-  const zipUrl = `https://github.com/${this.user}/${this.repo}/archive/${this.ref}.zip`;
+  debug('downloadType %o', this.downloadType);
 
-  return new Promise((resolve, reject) => {
-    download(zipUrl, this.targetDir, { extract: true })
-      .then(() => resolve())
-      .catch(e => reject(e));
-  });
-}
-
-Repo.config = {};
-Repo.setConfig = function (cfg) {
-  if (!cfg) return;
-
-  for (const key in cfg) {
-    if (Object.prototype.hasOwnProperty.call(cfg, key)) {
-      const value = cfg[key];
-      Repo.config[key] = value;
-    }
+  if (this.downloadType === 'git') {
+    return this._gitClone();
+  } else {
+    return this._downloadZip();
   }
 }
 
+/**
+ * download the whole repo zip package
+ *
+ * @private
+ */
 
+Repo.prototype._downloadZip = function () {
+  const zipUrl = `https://github.com/${this.user}/${this.repo}/archive/${this.ref}.zip`;
+
+  return download(zipUrl)
+    .then(data => decompress(data))
+    .then(files => {
+      if (!Array.isArray(files)) {
+        throw new Error('download files error!');
+        return;
+      }
+
+      const promiseAll = [];
+
+      for (let i = 0; i < files.length; i += 1) {
+        const file = files[i];
+        const pathArr = file.path.split(path.sep).slice(1);
+
+        if (pathArr[pathArr.length - 1] === '') {
+          pathArr.splice(pathArr.length - 1, 1, path.sep);
+        }
+
+        if (pathArr.length === 1 && pathArr[0] === path.sep) continue;
+
+        const filePath = path.join(this.targetDir, ...pathArr);
+
+        debug('%o %o %o', file.path, pathArr, filePath);
+
+        promiseAll.push(fs.outputFile(filePath, file.data, { encoding: 'utf-8' }));
+      }
+
+      return Promise.all(promiseAll);
+    });
+}
+
+/**
+ * git clone
+ *
+ * @private
+ */
+
+Repo.prototype._gitClone = function() {
+  const gitPath = `https://github.com/${this.user}/${this.repo}.git`;
+  debug('download git path:', gitPath);
+
+  return new Promise((resolve, reject) => {
+    exec(`git clone -b ${this.ref} ${gitPath} ${this.targetDir}`, (err, stdout, stderr) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      debug('clone success', stdout);
+      resolve();
+    });
+  })
+}
 
 function mkdirSync(target) {
   if (!target || typeof target !== 'string' || target === '') {
