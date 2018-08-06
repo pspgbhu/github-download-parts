@@ -10,6 +10,7 @@
     "url": "https://github.com/pspgbhu/github-download-parts"
   },
   "scripts": {
+    "postversion": "npm run test",
     "postversion": "npm publish && git push --follow-tags",
     "test": "jest"
   },
