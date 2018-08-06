@@ -1,5 +1,10 @@
 # github-download-parts
 
+[![npm package](https://img.shields.io/npm/v/github-download-parts.svg)](https://www.npmjs.org/package/github-download-parts)
+[![NPM downloads](http://img.shields.io/npm/dm/github-download-parts.svg)](https://npmjs.org/package/github-download-parts)
+[![GitHub issues](https://img.shields.io/github/issues/pspgbhu/github-download-parts.svg)](https://github.com/pspgbhu/github-download-parts/issues)
+[![Build Status](https://travis-ci.org/pspgbhu/github-download-parts.svg?branch=master)](https://travis-ci.org/pspgbhu/github-download-parts)
+
 Not only download the whole repository in github, but also it is able to download a partial of repository!
 
 ## Guide
