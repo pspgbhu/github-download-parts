@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const repo = require('../');
+const tree = require('./mock.json').tree;
 
 const TARGET = '__demo__';
 const TARGET2 = '__demo2__';
@@ -10,7 +11,7 @@ const TARGET4 = '__demo4__';
 jest.setTimeout(1000 * 30);
 
 test('Testing string parameter', done => {
-  repo('pspgbhu/vue-swipe-mobile', 'example', '__demo__')
+  repo('pspgbhu/vue-swipe-mobile', 'example', '__demo__', tree)
     .then(res => {
       expect(fs.existsSync(path.join(TARGET, 'main.js'))).toBe(true);
       expect(fs.existsSync(path.join(TARGET, 'App.vue'))).toBe(true);
@@ -27,6 +28,7 @@ test('Downloading a folder', done => {
     repo: 'pspgbhu/vue-swipe-mobile',
     pathname: 'example',
     target: TARGET2,
+    tree,
   }).then(() => {
       expect(fs.existsSync(path.join(TARGET2, 'main.js'))).toBe(true);
       expect(fs.existsSync(path.join(TARGET2, 'App.vue'))).toBe(true);
@@ -43,6 +45,7 @@ test('Downloading a single file', done => {
     repository: 'vue-swipe-mobile',
     pathname: 'example/main.js',
     target: TARGET3,
+    tree,
   }).then(() => {
       expect(fs.existsSync(path.join(TARGET3, 'main.js'))).toBe(true);
       done();
@@ -59,6 +62,7 @@ test('options.repo will have higher priority', done => {
     repo: 'pspgbhu/vue-swipe-mobile',
     pathname: 'example/main.js',
     target: TARGET4,
+    tree,
   }).then(() => {
       expect(fs.existsSync(path.join(TARGET4, 'main.js'))).toBe(true);
       done();

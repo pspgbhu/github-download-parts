@@ -14,7 +14,7 @@ const debug = require('debug')('github-download-parts');
  * @param {string} pathname a folder or file of this repository.
  * @param {string} target the target directory will be downloaded to.
  */
-module.exports = async function download(opts, pathname, target) {
+module.exports = async function download(opts, pathname, target, treeData) {
   if (!opts) {
     throw new Error('Expect first parameter is string or object, but got', typeof opts);
   }
@@ -29,16 +29,15 @@ module.exports = async function download(opts, pathname, target) {
   }
 
   const branch = opts.branch || 'master';
-
   target = target || opts.target;
-
   pathname = pathname || opts.pathname;
+  treeData = treeData || opts.tree;
 
   if (!checkRepo(repo)) {
     throw new Error('Parameter Error! Can not parse the repository path, please use a string of the form `${username}/${repo}` as the first parameter. Or use a object options as the first paramter.');
   }
 
-  const tree = await getTree(repo, branch);
+  const tree = await getTree(repo, branch, treeData);
   const { fileList, isFolder } = getFileList(tree, pathname);
 
   debug('isFolder: %o', isFolder);
@@ -53,8 +52,12 @@ module.exports = async function download(opts, pathname, target) {
  * @param {string} repo
  * @param {string} branch
  */
-function getTree(repo, branch) {
-  // return Promise.resolve(require('./test/mock.json').tree);
+function getTree(repo, branch, tree) {
+  // mock tree data
+  if (tree) {
+    return Promise.resolve(tree);
+  }
+
   const url = `https://api.github.com/repos/${repo}/git/trees/${branch}?recursive=1`;
 
   debug('api: %s', url);
