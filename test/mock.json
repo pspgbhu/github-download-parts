@@ -1,0 +1,365 @@
+{
+  "sha": "68f906c1f22f81c866d4d6a587d874ddf753f224",
+  "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/68f906c1f22f81c866d4d6a587d874ddf753f224",
+  "tree": [{
+      "path": ".babelrc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "41789cacd9f8f13950c43a02be46199c7a412290",
+      "size": 96,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/41789cacd9f8f13950c43a02be46199c7a412290"
+    },
+    {
+      "path": ".editorconfig",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9d08a1a828a3bd2d60de3952744df29f9add27fa",
+      "size": 147,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/9d08a1a828a3bd2d60de3952744df29f9add27fa"
+    },
+    {
+      "path": ".eslintrc.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5351a1843af44c92b3ebd6e63fd42b7b5ee9f899",
+      "size": 1090,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/5351a1843af44c92b3ebd6e63fd42b7b5ee9f899"
+    },
+    {
+      "path": ".gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5484feb388878695b31ba96e0f50ebc102c934f3",
+      "size": 46,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/5484feb388878695b31ba96e0f50ebc102c934f3"
+    },
+    {
+      "path": ".npmignore",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "4eb3cd69b1fa93e0dd07b60a25060903ecc799eb",
+      "size": 68,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/4eb3cd69b1fa93e0dd07b60a25060903ecc799eb"
+    },
+    {
+      "path": ".travis.yml",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fcac129715be58beba87b8dce7b36426fa81c74c",
+      "size": 58,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/fcac129715be58beba87b8dce7b36426fa81c74c"
+    },
+    {
+      "path": "LICENSE",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "15dd29eb1edc299bd1d9c22c5ee10b88d94f4ed0",
+      "size": 1061,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/15dd29eb1edc299bd1d9c22c5ee10b88d94f4ed0"
+    },
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6d08ae351d02477f495ac5fcb3b6f1d5b3eca1c1",
+      "size": 3862,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/6d08ae351d02477f495ac5fcb3b6f1d5b3eca1c1"
+    },
+    {
+      "path": "README_CN.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "31432904433501cb5b3253da8282c5d404867ff6",
+      "size": 4334,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/31432904433501cb5b3253da8282c5d404867ff6"
+    },
+    {
+      "path": "bin",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "8be2bf6e14f9562af8987af41002428e7389b7c2",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/8be2bf6e14f9562af8987af41002428e7389b7c2"
+    },
+    {
+      "path": "bin/gh-pages",
+      "mode": "100755",
+      "type": "blob",
+      "sha": "00e9d8d9b97f8bac40aa33e9a031b7254e4fc401",
+      "size": 312,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/00e9d8d9b97f8bac40aa33e9a031b7254e4fc401"
+    },
+    {
+      "path": "build",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2d6e0b7941cc6e616051a9808632093489176b02",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/2d6e0b7941cc6e616051a9808632093489176b02"
+    },
+    {
+      "path": "build/build.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2c9c00599856b6b144ea83687a7eac364a4d242c",
+      "size": 923,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/2c9c00599856b6b144ea83687a7eac364a4d242c"
+    },
+    {
+      "path": "build/check-versions.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "e2b6cf74c215ed542d8e3ab01ff70afa1ca0b83f",
+      "size": 1182,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/e2b6cf74c215ed542d8e3ab01ff70afa1ca0b83f"
+    },
+    {
+      "path": "build/dev-client.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "18aa1e21952b9468dd5a7e603eb9966d037d2f1a",
+      "size": 245,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/18aa1e21952b9468dd5a7e603eb9966d037d2f1a"
+    },
+    {
+      "path": "build/dev-server.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "00f600e7079a1e8985686254eb1b4404339adc05",
+      "size": 2152,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/00f600e7079a1e8985686254eb1b4404339adc05"
+    },
+    {
+      "path": "build/utils.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dc3cdd01145ea1db4cf4ea1e8a355caf24f229af",
+      "size": 1951,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/dc3cdd01145ea1db4cf4ea1e8a355caf24f229af"
+    },
+    {
+      "path": "build/webpack.base.conf.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9cecb68305e0c79e9f76705e86432d5acd672e0b",
+      "size": 2970,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/9cecb68305e0c79e9f76705e86432d5acd672e0b"
+    },
+    {
+      "path": "build/webpack.dev.conf.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c9e6cc0c65670005d3f1f2d1124f69a52dc8bf58",
+      "size": 1233,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/c9e6cc0c65670005d3f1f2d1124f69a52dc8bf58"
+    },
+    {
+      "path": "build/webpack.prod.conf.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "caff3ce03bc64975b559ffde7b737f944ad4fe16",
+      "size": 3496,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/caff3ce03bc64975b559ffde7b737f944ad4fe16"
+    },
+    {
+      "path": "config",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c1617f925ce714a96b4a2706cdd042645faaf02c",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/c1617f925ce714a96b4a2706cdd042645faaf02c"
+    },
+    {
+      "path": "config/dev.env.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "efead7c840a15f2a06ed28fcf1304293a9b704e0",
+      "size": 139,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/efead7c840a15f2a06ed28fcf1304293a9b704e0"
+    },
+    {
+      "path": "config/index.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2178eeab7da9f1f0c12302dc009be794e934cebe",
+      "size": 1194,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/2178eeab7da9f1f0c12302dc009be794e934cebe"
+    },
+    {
+      "path": "config/prod.env.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "773d263d31260be27d2d7e3fbaa5c17ae4e732f6",
+      "size": 48,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/773d263d31260be27d2d7e3fbaa5c17ae4e732f6"
+    },
+    {
+      "path": "config/test.env.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "89f90deb22e1d04723f4ec859ef976fc5f4c2761",
+      "size": 132,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/89f90deb22e1d04723f4ec859ef976fc5f4c2761"
+    },
+    {
+      "path": "dist",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "92f284aa8f18af63348afb05a977082e04735453",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/92f284aa8f18af63348afb05a977082e04735453"
+    },
+    {
+      "path": "dist/swipe.css",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "da308cb82a56d5a3579e5e2f4c21365c32cf28bc",
+      "size": 648,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/da308cb82a56d5a3579e5e2f4c21365c32cf28bc"
+    },
+    {
+      "path": "dist/swipe.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bbe75f4b45135af84da70f728bc1a8650a2f4ada",
+      "size": 18823,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/bbe75f4b45135af84da70f728bc1a8650a2f4ada"
+    },
+    {
+      "path": "example",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "c162724813a8b5e24a339de7401790eff5651cfd",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/c162724813a8b5e24a339de7401790eff5651cfd"
+    },
+    {
+      "path": "example/App.vue",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "c2ece2ed9a2d1f867f5ac985ba7480c4b3ca0929",
+      "size": 4344,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/c2ece2ed9a2d1f867f5ac985ba7480c4b3ca0929"
+    },
+    {
+      "path": "example/main.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cae395d3bd32f136ae4764a5f742f4cb95b22ec2",
+      "size": 253,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/cae395d3bd32f136ae4764a5f742f4cb95b22ec2"
+    },
+    {
+      "path": "index.html",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "52eb067ef3191c7ae2b1e48eed0246cb6911c68f",
+      "size": 637,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/52eb067ef3191c7ae2b1e48eed0246cb6911c68f"
+    },
+    {
+      "path": "package.json",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a5b43a06e1615bf83697979456c189f29bbeaed7",
+      "size": 3073,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/a5b43a06e1615bf83697979456c189f29bbeaed7"
+    },
+    {
+      "path": "src",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "6d27f6e455db642cf1c3780efab5d787c159aa21",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/6d27f6e455db642cf1c3780efab5d787c159aa21"
+    },
+    {
+      "path": "src/main.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "01d328966bcd0b4b6f7b442dd98fe34cd7f0f960",
+      "size": 134,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/01d328966bcd0b4b6f7b442dd98fe34cd7f0f960"
+    },
+    {
+      "path": "src/swipe-item.vue",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7fe258c8559c90e4a0294968a478eba511ae2eaa",
+      "size": 185,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/7fe258c8559c90e4a0294968a478eba511ae2eaa"
+    },
+    {
+      "path": "src/swipe.vue",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "710181192f8d958de82bc4f722defa380dbc8334",
+      "size": 15464,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/710181192f8d958de82bc4f722defa380dbc8334"
+    },
+    {
+      "path": "test",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "e7da01c5da05aa577444d510290f3a8ba88b43c8",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/e7da01c5da05aa577444d510290f3a8ba88b43c8"
+    },
+    {
+      "path": "test/unit",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ed957c8c7ed1c9f7ded2a3f076776af35f7ea609",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/ed957c8c7ed1c9f7ded2a3f076776af35f7ea609"
+    },
+    {
+      "path": "test/unit/.eslintrc",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9be11ca85bf315871904915cefe690521489c59b",
+      "size": 141,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/9be11ca85bf315871904915cefe690521489c59b"
+    },
+    {
+      "path": "test/unit/index.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3f7e46e1b770a1e5376b44b70dabb17ae9626f4c",
+      "size": 616,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/3f7e46e1b770a1e5376b44b70dabb17ae9626f4c"
+    },
+    {
+      "path": "test/unit/karma.conf.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "770d78e14876c6f9d7903ea671776c6df0001cf6",
+      "size": 1870,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/770d78e14876c6f9d7903ea671776c6df0001cf6"
+    },
+    {
+      "path": "test/unit/specs",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "cbc373c9ed354d2af344d65288efac5f51d49756",
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/trees/cbc373c9ed354d2af344d65288efac5f51d49756"
+    },
+    {
+      "path": "test/unit/specs/swipe.spec.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8590e9aec754ddab3d2d124351ca73c335eda267",
+      "size": 770,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/8590e9aec754ddab3d2d124351ca73c335eda267"
+    },
+    {
+      "path": "test/unit/units.js",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "82b9db54a1c0d131981fa36606386ca39c7469f1",
+      "size": 68,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/82b9db54a1c0d131981fa36606386ca39c7469f1"
+    },
+    {
+      "path": "yarn.lock",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "0eb14a335d67a3c5362590359ea1956e3b84d754",
+      "size": 228863,
+      "url": "https://api.github.com/repos/pspgbhu/vue-swipe-mobile/git/blobs/0eb14a335d67a3c5362590359ea1956e3b84d754"
+    }
+  ],
+  "truncated": false
+}

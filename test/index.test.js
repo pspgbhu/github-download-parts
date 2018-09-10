@@ -1,88 +1,76 @@
-const Repo = require('../index.js');
 const path = require('path');
 const fs = require('fs-extra');
+const repo = require('../');
+
+const TARGET = '__demo__';
+const TARGET2 = '__demo2__';
+const TARGET3 = '__demo3__';
+const TARGET4 = '__demo4__';
 
 jest.setTimeout(1000 * 30);
 
-test('by git', async () => {
-  const dir = path.resolve(__dirname, 'demo_target');
-
-  try {
-    await fs.remove(dir)
-  } catch (err) {
-    console.log('remove error:', err);
-  }
-
-  await Repo('pspgbhu/github-download-parts')
-    .download(dir);
-
-  fs.statSync(dir);
-  fs.statSync(path.join(dir, 'index.js'));
-
-  try {
-    await fs.remove(dir)
-  } catch (err) {
-  }
+test('Testing string parameter', done => {
+  repo('pspgbhu/vue-swipe-mobile', 'example', '__demo__')
+    .then(res => {
+      expect(fs.existsSync(path.join(TARGET, 'main.js'))).toBe(true);
+      expect(fs.existsSync(path.join(TARGET, 'App.vue'))).toBe(true);
+      done();
+    })
+    .catch(e => {
+      console.log(e);
+      throw new Error(e);
+    });
 });
 
-test('by zip', async () => {
-  const dir = path.resolve(__dirname, 'demo_target_zip');
-
-  try {
-    await fs.remove(dir)
-  } catch (err) {
-    console.log('remove error:', err);
-  }
-
-  await Repo({ user: 'pspgbhu', repo: 'github-download-parts', downloadType: 'zip' })
-    .download(dir);
-
-  fs.statSync(dir);
-  fs.statSync(path.join(dir, 'index.js'));
-
-  try {
-    await fs.remove(dir)
-  } catch (err) {
-  }
+test('Downloading a folder', done => {
+  repo({
+    repo: 'pspgbhu/vue-swipe-mobile',
+    pathname: 'example',
+    target: TARGET2,
+  }).then(() => {
+      expect(fs.existsSync(path.join(TARGET2, 'main.js'))).toBe(true);
+      expect(fs.existsSync(path.join(TARGET2, 'App.vue'))).toBe(true);
+      done();
+  }).catch(e => {
+    console.log(e);
+    throw new Error(e);
+  });
 });
 
-test('single file', async () => {
-  const dir = path.resolve(__dirname, 'demo_file');
-
-  try {
-    await fs.remove(dir)
-  } catch (err) {
-    console.log('remove error:', err);
-  }
-
-  await Repo('pspgbhu/github-download-parts')
-    .download(dir, 'index.js');
-
-  fs.statSync(dir);
-
-  try {
-    await fs.remove(dir)
-  } catch (err) {
-  }
+test('Downloading a single file', done => {
+  repo({
+    username: 'pspgbhu',
+    repository: 'vue-swipe-mobile',
+    pathname: 'example/main.js',
+    target: TARGET3,
+  }).then(() => {
+      expect(fs.existsSync(path.join(TARGET3, 'main.js'))).toBe(true);
+      done();
+  }).catch(e => {
+    console.log(e);
+    throw new Error(e);
+  });
 });
 
+test('options.repo will have higher priority', done => {
+  repo({
+    username: 'pspgbhu',
+    repository: 'errorpath',
+    repo: 'pspgbhu/vue-swipe-mobile',
+    pathname: 'example/main.js',
+    target: TARGET4,
+  }).then(() => {
+      expect(fs.existsSync(path.join(TARGET4, 'main.js'))).toBe(true);
+      done();
+  }).catch(e => {
+    console.log(e);
+    throw new Error(e);
+  });
+});
 
-test('single file by set options', async () => {
-  const dir = path.resolve(__dirname, 'demo_file_options');
-
-  try {
-    await fs.remove(dir)
-  } catch (err) {
-    console.log('remove error:', err);
-  }
-
-  await Repo({ user: 'pspgbhu', repo: 'github-download-parts', ref: 'master' })
-    .download(dir, 'index.js');
-
-  fs.statSync(dir);
-
-  try {
-    await fs.remove(dir)
-  } catch (err) {
-  }
+afterAll(() => {
+  fs.remove(TARGET);
+  fs.remove(TARGET2);
+  fs.remove(TARGET3);
+  fs.remove(TARGET4);
 });

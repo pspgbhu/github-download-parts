@@ -5,20 +5,19 @@
 [![GitHub issues](https://img.shields.io/github/issues/pspgbhu/github-download-parts.svg)](https://github.com/pspgbhu/github-download-parts/issues)
 [![Build Status](https://travis-ci.org/pspgbhu/github-download-parts.svg?branch=master)](https://travis-ci.org/pspgbhu/github-download-parts)
 
-It is able to download a partial of repository!
+它可以下载 Github 仓库的中部分文件或文件夹
 
-[中文文档](./README_CN.md
-)
+[English Document](./README.md)
 
-## Guide
+## 指南
 
-Download a folder or file from github repository.
+从 Github 仓库中下载一个文件夹或者单文件
 
 ```js
 const repo = require('github-download-parts');
 
-// download a single file
-// download the `index.js` file to `target` folder
+// 下载单文件
+// 将会把 index.js 文件下载到本地的 target 文件夹中
 repo('pspgbhu/github-download-parts', 'target', 'index.js')
   .then(() => {
     console.log('download success');
@@ -27,8 +26,8 @@ repo('pspgbhu/github-download-parts', 'target', 'index.js')
     console.log('download error');
   });
 
-// download a folder
-// download all files in the `test` folder of github repository to the local `target` folder.
+// 下载一个文件夹
+// 将会把 test 文件夹下的全部文件都下载到本地的 target 文件夹中
 repo('pspgbhu/github-download-parts', 'target', 'test')
   .then(() => {
     console.log('download success');
@@ -43,17 +42,18 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
 
 - **options** `<string>`
 
-  Could input a string as the options, the format is `"${username}/${repository}"`.
+  可以输入一个字符串作为参数，格式为 `"${username}/${repository}"`
 
 - **options** `<object>`
-  - **username** `<string>`: The username of github.
-  - **repository** `<string>`: The name of the repository.
-  - **repo** `<string>`: The shorthand for `username` and `repository`, the format is `"${username}/respository"`
-  - **target** `<string>`: The local folder path that files will be created into..
-  - **pathname** `<string>`: A file or folder path of github repository.
+  - **username** `<string>`: Github 的用户名
+  - **repository** `<string>`: 仓库的名称.
+  - **repo** `<string>`: `username` 和 `repository` 属性的简写，格式为 `"${username}/${repository}"`
+  - **target** `<string>`: 下载的文件将会被创建至该本地文件夹内
+  - **pathname** `<string>`: Github 中将要被下载的文件或者文件夹的一个相对路径
 
 
 ## Download Limiting
-Because of Github API Rate Limiting, github allows 60 requests per hour **You just only could download 60 times per hour**.
 
-[Know More About Github Rate Limiting](https://developer.github.com/v3/#rate-limiting)
+由于 Github API 的限制，Github 只允许每小时 60 次的 API 请求，因此 **你只能每小时进行 60 次的下载**
+
+[了解更多关于 GitHub API 速率的限制](https://developer.github.com/v3/#rate-limiting)

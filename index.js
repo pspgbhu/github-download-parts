@@ -1,433 +1,214 @@
-/**
- * SUPPORT BY GITHUB API
- *
- * https://developer.github.com/v3/repos/branches/#get-branch
- * https://developer.github.com/v3/git/trees/#get-a-tree-recursively
- * https://developer.github.com/v3/repos/contents
- *
- * @author pspgbhu <brotherchun001@gmail.com> (http://pspgbhu.me)
- */
-
-const fs = require('fs-extra');
-const debug = require('debug')('repo');
-const download = require('download');
-const decompress = require('decompress');
-const request = require('superagent');
 const path = require('path');
-const { exec } = require('child_process');
+const fs = require('fs');
+const request = require('request');
+const debug = require('debug')('github-download-parts');
 
 /**
- * @constructor
- *
- * @prop user         {string}
- * @prop repo         {string}
- * @prop ref          {string}
- * @prop downloadType {string}
- * @prop targetDir    {string}
- * @prop tree         {object}
+ * @param {object|string} opts the options
+ * @param {string} opts.username github username
+ * @param {string} opts.repository github repository name
+ * @param {string} opts.repo form as '${username}/${repository}'
+ * @param {string} opts.branch the branch of repo.
+ * @param {string} opts.pathname a folder or file of this repo
+ * @param {string} opts.target the directory of files will be downloaded to.
+ * @param {string} pathname a folder or file of this repository.
+ * @param {string} target the target directory will be downloaded to.
  */
-
-function Repo(info) {
-  if (!(this instanceof Repo)) {
-    return new Repo(info);
+module.exports = async function download(opts, pathname, target) {
+  if (!opts) {
+    throw new Error('Expect first parameter is string or object, but got', typeof opts);
   }
 
-  let user, repo, ref;
-  let downloadType = 'git';
-
-  if (typeof info === 'string') {
-    const arr = info.split('/');
-
-    if (arr.length < 2) {
-      throw new Error('[Repo constructor] Invalid parameter! Expect the first parameter look like "user/repo"');
-    }
-
-    user = arr[0];
-    repo = arr[1];
-    ref = arr[2] || 'master';
-
-  } else if (typeof info === 'object') {
-    if (!info.user || !info.repo) {
-      throw new Error('[Repo constructor] Invalid parameter!');
-    }
-
-    user = info.user;
-    repo = info.repo;
-    ref = info.ref || 'master';
-    downloadType = info.downloadType === 'zip' ? 'zip' : 'git';
-
+  let repo;
+  if (typeof opts === 'string') {
+    repo = opts;
+  } else if (opts.repo) {
+    repo = opts.repo;
   } else {
-    throw new Error('[Repo constructor] Invalid parameter!');
+    repo = `${opts.username}/${opts.repository}`;
   }
 
-  this.user = user;
-  this.repo = repo;
-  this.ref = ref;
-  this.downloadType = downloadType;
-  this.tree = { __files__: [] };
+  const branch = opts.branch || 'master';
 
-  this.targetDir = '';
-  this._combineConfig();
-}
+  target = target || opts.target;
 
-/**
- * @private
- * @static {object}
- */
+  pathname = pathname || opts.pathname;
 
-Repo.config = {};
-
-/**
- * @public
- * @static {Function}
- */
-
-Repo.setConfig = function (cfg) {
-  if (!cfg) return;
-
-  for (const key in cfg) {
-    if (Object.prototype.hasOwnProperty.call(cfg, key)) {
-      const value = cfg[key];
-      Repo.config[key] = value;
-    }
+  if (!checkRepo(repo)) {
+    throw new Error('Parameter Error! Can not parse the repository path, please use a string of the form `${username}/${repo}` as the first parameter. Or use a object options as the first paramter.');
   }
-}
+
+  const tree = await getTree(repo, branch);
+  const { fileList, isFolder } = getFileList(tree, pathname);
+
+  debug('isFolder: %o', isFolder);
+  debug('repo: %s', repo);
+  debug('target: %s', target);
+  debug('pathname: %s', pathname);
+  return createFiles(fileList, target, repo, branch, isFolder);
+};
 
 /**
- * @param {String} targetDir
- * Files will be downloaded to this dir
- *
- * @param {String} path
- * If path has a value, it will download parts of repo that according the path.
- * If path has no value, it will download the whole repo.
- *
- * @return {Promise}
+ * get the tree of repo files
+ * @param {string} repo
+ * @param {string} branch
  */
+function getTree(repo, branch) {
+  // return Promise.resolve(require('./test/mock.json').tree);
+  const url = `https://api.github.com/repos/${repo}/git/trees/${branch}?recursive=1`;
 
-Repo.prototype.download = function (targetDir = '', repoParts = '') {
-  if (typeof targetDir !== 'string') {
-    throw new Error('The first parameter must pass a string.');
-  }
-  this.targetDir = path.resolve(targetDir);
-
-  // download partial
-  if (repoParts !== '') {
-    debug('%s %s', 'The targetDir:', targetDir);
-    debug('%s %s', 'The repoParts:', repoParts);
-
-    return new Promise((resolve, reject) => {
-      this._getSha(repoParts)
-        .then(sha => {
-          if (!sha) return Promise.reject('success');
-          return this._getDownloadQueue(sha, repoParts)
-        })
-        .then(downloadQueue => this._downloadFiles(downloadQueue))
-        .then(() => resolve())
-        .catch(e => {
-          if (e === 'success') {
-            resolve();
-            return;
-          }
-          reject(e)
-        });
-    });
-
-  // Download the whole repo
-  } else {
-    debug('download the whole repo');
-    return this._downloadRepo();
-  }
-}
-
-/**
- * @private
- */
-
-Repo.prototype._combineConfig = function () {
-  const ignore = [];
-
-  for (const key in Repo.config) {
-    if (Object.prototype.hasOwnProperty.call(Repo.config, key)) {
-      const value = Repo.config[key];
-      if (key in ignore) continue;
-      this[key] = value;
-    }
-  }
-}
-
-/**
- * @private
- */
-
-Repo.prototype._getSha = function (repoParts) {
-
-  // if begin with '/', will remove it.
-  // And will got the parentPath.
-  let repoPartsParent =
-    repoParts.indexOf('/') === 0
-    ? repoParts.slice(1).split('/').slice(1).join('/')
-    : repoParts.split('/').slice(1).join('/');
-
-  debug('The repoParts parent:', repoPartsParent);
-
-  var api = `https://api.github.com/repos/${this.user}/${this.repo}/contents/${repoPartsParent}?ref=${this.ref}`;
-
-  debug('Getting the sha of files form', api);
+  debug('api: %s', url);
 
   return new Promise((resolve, reject) => {
-    request(api).end((err, response) => {
-
+    request({
+      url,
+      headers: {
+        'User-Agent': require('./package.json').name,
+      },
+    }, (err, res, body) => {
       if (err) {
-        debug('%s %o', 'Get sha error!', err.status);
         reject(err);
         return;
       }
-      debug('Got the sha success');
-
-      var res = JSON.parse(response.text);
-      if (res.message) {
-        reject(err.message);
-      }
-
-      if (!Array.isArray(res)) {
-        reject('res not an array!');
+      if (res.statusCode === 404) {
+        reject(`Not found "${repo}" repository, please check it again`);
+      } else if (res.statusCode !== 200) {
+        reject(body);
         return;
       }
 
-      var sha = '';
+      const json = JSON.parse(body);
 
-      for (let index = 0; index < res.length; index++) {
-        const item = res[index];
-
-        // download single file.
-        if (item.path === repoParts && item.type === 'file') {
-          const url = `https://raw.githubusercontent.com/${this.user}/${this.repo}/${this.ref}/${repoParts}`
-          this._downloadFile(url, `${this.targetDir}/${repoParts}`)
-            .then(() => resolve())
-            .catch(e => reject(e));
-            return;
-        }
-
-        // download a dir.
-        if (item.path === repoParts) {
-          sha = item.sha;
-        }
+      if (!json.tree) {
+        reject('Request Error!');
+        return;
       }
 
-      if (sha) {
-        resolve(sha);
-      } else {
-        reject('No repoParts file or dir');
-      }
+      resolve(json.tree);
     });
   });
 }
 
 /**
- * @private
+ * filter the files need to downloaded.
+ * @param {Array} tree
+ * @param {string} pathname
  */
+function getFileList(tree, pathname) {
+  if (!Array.isArray(tree)) {
+    throw new Error('Tree is not an array');
+  }
 
-Repo.prototype._getDownloadQueue = function (sha, repoParts) {
-  return new Promise((resolve, reject) => {
+  let isFolder = false;
+  const regexp = new RegExp(`^${pathname}(\/|$)`);
 
-    var api = `https://api.github.com/repos/${this.user}/${this.repo}/git/trees/${sha}?recursive=1`;
+  const fileList = tree.filter(info => {
+    // check is pathname a folder;
+    if (pathname === info.path) {
+      isFolder = info.type === 'tree';
+    }
+    // filter files
+    return regexp.test(info.path)
+  });
 
-    request(api).end((err, response) => {
-      if (err) {
-        debug('%s %o', 'Error:', err);
-        reject(err);
-        return;
-      }
+  return { isFolder, fileList };
+}
 
-      var res = JSON.parse(response.text);
+/**
+ * @param {Array} fileList
+ * @param {string} target
+ * @param {string} repo
+ * @param {string} branch
+ * @param {boolean} isFolder
+ */
+function createFiles(fileList, target, repo, branch, isFolder = false) {
 
-      if (res.message) {
-        debug('%s %o', 'Error:', res.message);
-        reject(err);
-        return;
-      }
+  !fs.existsSync(target) && fs.mkdirSync(target);
 
-      var queue = [];
-      res.tree.forEach(item => {
-        var type = item.type;
-        var needPopDirPath = item.path.split('/');
-        var filename = needPopDirPath.pop();
-        var repoAbsolutePath = repoParts + '/' + item.path;
-
-        if (type === 'blob') {
-
-          var fileInfo = {
-            filename,
-            path: repoAbsolutePath,
-            dirPath: this.targetDir + path.sep + needPopDirPath.join(path.sep),
-            downloadUrl: '',
-          };
-
-          fileInfo.downloadUrl =
-            `https://raw.githubusercontent.com/${this.user}/${this.repo}/${this.ref}/${repoAbsolutePath}`;
-
-          queue.push(fileInfo);
-        }
+  const list = !isFolder
+    // if only download a single file
+    ? fileList.map(info => {
+        // the filename is `${basename}`
+        info.filename = path.parse(info.path).base;
+        return info;
+    })
+    // if need to download a folder
+    : fileList.map(info => {
+        const paths = info.path.split('/');
+        paths.shift();
+        info.filename = paths.join('/');
+        return info;
       });
 
-      resolve(queue);
-    });
-  });
-}
+  let number = list.length;
 
-/**
- * @private
- */
+  return new Promise((resolve, reject) => {
+    list.forEach(info => {
+      const filename = path.join(target, info.filename);
 
-Repo.prototype._downloadFiles = function (downloadQueue) {
-  return new Promise((resolve) => {
-    debug('Begin downloading files...');
-    downloadQueue.forEach((item, index) => {
-      debug('%s %o', 'downloadQueue item:', item);
+      // console.log('info %o', info);
+      // console.log('filename', filename);
 
-      const url = item.downloadUrl;
-      const filePath = path.join(item.dirPath, item.filename);
-      this._downloadFile(url, filePath).then(() => {
+      // create folder
+      if (info.type === 'tree') {
+        info.filename && !fs.existsSync(filename) && fs.mkdirSync(filename);
+        number--;
+        return;
+      }
 
-        debug(`${filePath} download success.`)
-        // 最后一个文件
-        if (index === downloadQueue.length - 1) {
+      // https://raw.githubusercontent.com/pspgbhu/vue-swipe-mobile/master/example/App.vue
+
+      // downloading file
+      const url = `https://raw.githubusercontent.com/${repo}/${branch}/${info.path}`;
+
+      downloadFile(url, filename)
+        .then(() => {
+          downloadFinaly();
+        })
+        .catch(error => {
+          downloadFinaly();
+        });
+
+      function downloadFinaly() {
+        number--;
+        if (number <= 0) {
           resolve();
         }
-
-      }).catch(e => {
-
-        // 最后一个文件
-        if (index === downloadQueue.length - 1) {
-          resolve(e);
-        }
-      });
+      }
     });
   });
 }
 
 /**
- * @private
+ * @param {string} url
+ * @param {string} filename
+ * @param {number} retry
  */
-
-Repo.prototype._downloadFile = function (url, filePath) {
+function downloadFile(url, filename, retry = 0, rs = null, rj = null) {
   return new Promise((resolve, reject) => {
-    if (!url) reject('Got an empty value in _downloadFile.');
+    resolve = rs || resolve;
+    reject = rj || reject;
 
-    mkdirSync(path.dirname(filePath));
-    download(url).then(data => {
-
-      fs.writeFile(filePath, data, err => {
-        if (err) {
-          reject(err);
-          return;
-        };
-        debug(`Download file '${path.basename(filePath)}' success`)
-        resolve();
-      });
-
-    }).catch(e => {
-      debug(`File ${path.basename(filePath)} download error!'`);
-      reject(e);
-    });
+    request
+      .get(encodeURI(url))
+      .on('error', function(e) {
+        if (retry < 3) {
+          downloadFile(url, filename, retry + 1, resolve, reject);
+        } else {
+          reject({ message: `${filename} download error`, url, filename, errMsg: e });
+        }
+      })
+      .on('response', function(res) {
+        if ( res.statusCode !== 200 ) {
+          this.emit( 'error', res.statusMessage )
+        } else {
+          resolve({ filename, url });
+        }
+      })
+      .pipe(fs.createWriteStream(filename));
   });
 }
 
-/**
- * @private
- */
-
-Repo.prototype._downloadRepo = function () {
-  debug('downloadType %o', this.downloadType);
-
-  if (this.downloadType === 'git') {
-    return this._gitClone();
-  } else {
-    return this._downloadZip();
-  }
+function checkRepo(repo) {
+  return /^[\w\b-]+\/[\w\b-]+$/.test(repo);
 }
-
-/**
- * download the whole repo zip package
- *
- * @private
- */
-
-Repo.prototype._downloadZip = function () {
-  const zipUrl = `https://github.com/${this.user}/${this.repo}/archive/${this.ref}.zip`;
-
-  return download(zipUrl)
-    .then(data => decompress(data))
-    .then(files => {
-      if (!Array.isArray(files)) {
-        throw new Error('download files error!');
-        return;
-      }
-
-      const promiseAll = [];
-
-      for (let i = 0; i < files.length; i += 1) {
-        const file = files[i];
-        const pathArr = file.path.split(path.sep).slice(1);
-        const filePath = path.join(this.targetDir, ...pathArr);
-
-        if (pathArr[pathArr.length - 1] === '') {
-          continue;
-        }
-
-        debug('%o %o %o', file.path, filePath);
-
-        promiseAll.push(fs.outputFile(filePath, file.data, { encoding: 'utf-8' }));
-      }
-
-      return Promise.all(promiseAll);
-    });
-}
-
-/**
- * git clone
- *
- * @private
- */
-
-Repo.prototype._gitClone = function() {
-  const gitPath = `https://github.com/${this.user}/${this.repo}.git`;
-  debug('download git path:', gitPath);
-
-  return new Promise((resolve, reject) => {
-    exec(`git clone -b ${this.ref} ${gitPath} ${this.targetDir}`, (err, stdout, stderr) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      debug('clone success', stdout);
-      resolve();
-    });
-  })
-}
-
-function mkdirSync(target) {
-  if (!target || typeof target !== 'string' || target === '') {
-    return;
-  }
-
-  const prefix = path.isAbsolute(target) ? path.sep : '';
-  const array = target.split(path.sep);
-
-  for (let i = 0; i < array.length; i++) {
-    const verifyPath = prefix + array.slice(0, i + 1).join(path.sep) + path.sep;
-
-    try {
-      fs.accessSync(verifyPath);
-      continue;
-    } catch (e) {
-      try {
-        fs.mkdirSync(verifyPath);
-      } catch (error) {
-        debug(`mkdir '${verifyPath}' error!`);
-      }
-    }
-  }
-}
-
-module.exports = Repo;
