@@ -1,3 +1,5 @@
+English | [简体中文](./README_CN.md)
+
 # github-download-parts
 
 [![npm package](https://img.shields.io/npm/v/github-download-parts.svg)](https://www.npmjs.org/package/github-download-parts)
@@ -7,8 +9,6 @@
 
 It is able to download a partial of repository!
 
-[中文文档](./README_CN.md
-)
 
 ## Guide
 
@@ -54,6 +54,6 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
 
 
 ## Download Limiting
-Because of Github API Rate Limiting, github allows 60 requests per hour **You just only could download 60 times per hour**.
+Because of Github API Rate Limiting, every IP only be allowed 60 requests per hour, So **every IP just only could download 60 times per hour**.
 
 [Know More About Github Rate Limiting](https://developer.github.com/v3/#rate-limiting)

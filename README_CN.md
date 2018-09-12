@@ -1,3 +1,5 @@
+[English](./README.md) | 简体中文
+
 # github-download-parts
 
 [![npm package](https://img.shields.io/npm/v/github-download-parts.svg)](https://www.npmjs.org/package/github-download-parts)
@@ -6,8 +8,6 @@
 [![Build Status](https://travis-ci.org/pspgbhu/github-download-parts.svg?branch=master)](https://travis-ci.org/pspgbhu/github-download-parts)
 
 它可以下载 Github 仓库的中部分文件或文件夹
-
-[English Document](./README.md)
 
 ## 指南
 
@@ -52,8 +52,10 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
   - **pathname** `<string>`: Github 中将要被下载的文件或者文件夹的一个相对路径
 
 
-## Download Limiting
+## 限制
 
-由于 Github API 的限制，Github 只允许每小时 60 次的 API 请求，因此 **你只能每小时进行 60 次的下载**
+通常情况下它不会影响到正常的使用。
+
+由于 Github API 的限制，每个 IP 只允许每小时 60 次的 API 请求，因此 **每个 IP 每小时只能进行 60 次的下载**
 
 [了解更多关于 GitHub API 速率的限制](https://developer.github.com/v3/#rate-limiting)
