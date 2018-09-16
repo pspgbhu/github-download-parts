@@ -49,9 +49,16 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
   - **username** `<string>`: The username of github.
   - **repository** `<string>`: The name of the repository.
   - **repo** `<string>`: The shorthand for `username` and `repository`, the format is `"${username}/respository"`
-  - **target** `<string>`: The local folder path that files will be created into..
+  - **target** `<string>`: The local folder path that files will be created into.
   - **pathname** `<string>`: A file or folder path of github repository.
 
+- **target** `<string>`
+
+  The local folder path that files will be created into.
+
+- **pathname** `<string>`
+
+  A file or folder path of github repository.
 
 ## Download Limiting
 Because of Github API Rate Limiting, every IP only be allowed 60 requests per hour, So **every IP just only could download 60 times per hour**.

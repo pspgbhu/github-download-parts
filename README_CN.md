@@ -51,6 +51,13 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
   - **target** `<string>`: 下载的文件将会被创建至该本地文件夹内
   - **pathname** `<string>`: Github 中将要被下载的文件或者文件夹的一个相对路径
 
+- **target** `<string>`
+
+  下载的文件将会被创建至该本地文件夹内
+
+- **pathname** `<string>`
+
+  Github 中将要被下载的文件或者文件夹的一个相对路径
 
 ## 限制
 
