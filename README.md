@@ -30,7 +30,7 @@ repo('pspgbhu/github-download-parts', 'target', 'index.js')
 - Download a folder
 
 ```js
-const repo = require('github-download-parts);
+const repo = require('github-download-parts');
 
 // download all files in the `test` folder of github repository to the local `target` folder.
 repo('pspgbhu/github-download-parts', 'target', 'test')
@@ -45,7 +45,7 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
 - Download a whole repository
 
 ```js
-const repo = require('github-download-parts);
+const repo = require('github-download-parts');
 
 // download the whole repository into target local folder
 repo('pspgbhu/github-download-parts', 'target')

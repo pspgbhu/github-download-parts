@@ -29,7 +29,7 @@ repo('pspgbhu/github-download-parts', 'target', 'index.js')
 - 下载一个文件夹
 
 ```js
-const repo = require('github-download-parts);
+const repo = require('github-download-parts');
 
 // 将会把 test 文件夹下的全部文件都下载到本地的 target 文件夹中
 repo('pspgbhu/github-download-parts', 'target', 'test')
@@ -44,7 +44,7 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
 - 下载完整的仓库
 
 ```js
-const repo = require('github-download-parts);
+const repo = require('github-download-parts');
 
 // 将整个仓库都下载到本地的 target 文件夹中
 repo('pspgbhu/github-download-parts', 'target')
