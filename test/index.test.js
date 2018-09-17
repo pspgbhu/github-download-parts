@@ -11,7 +11,7 @@ const TARGET4 = '__demo4__';
 jest.setTimeout(1000 * 30);
 
 test('Testing string parameter', done => {
-  repo('pspgbhu/vue-swipe-mobile', 'example', '__demo__', tree)
+  repo('pspgbhu/vue-swipe-mobile', '__demo__', 'example', tree)
     .then(res => {
       expect(fs.existsSync(path.join(TARGET, 'main.js'))).toBe(true);
       expect(fs.existsSync(path.join(TARGET, 'App.vue'))).toBe(true);

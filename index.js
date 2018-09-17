@@ -14,7 +14,7 @@ const debug = require('debug')('github-download-parts');
  * @param {string} pathname a folder or file of this repository.
  * @param {string} target the target directory will be downloaded to.
  */
-module.exports = async function download(opts, pathname, target, treeData) {
+module.exports = async function download(opts, target, pathname, treeData) {
   if (!opts) {
     throw new Error('Expect first parameter is string or object, but got', typeof opts);
   }
