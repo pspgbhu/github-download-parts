@@ -32,7 +32,7 @@ test('Downloading a folder', done => {
     repo: REPO,
     pathname: 'example',
     target: TARGET2,
-    mockTree,
+    tree: mockTree,
   }).then(() => {
       expect(fs.existsSync(path.join(TARGET2, 'main.js'))).toBe(true);
       expect(fs.existsSync(path.join(TARGET2, 'App.vue'))).toBe(true);
@@ -49,7 +49,7 @@ test('Downloading a single file', done => {
     repository: REPOSITORY,
     pathname: 'example/main.js',
     target: TARGET3,
-    mockTree,
+    tree: mockTree,
   }).then(() => {
       expect(fs.existsSync(path.join(TARGET3, 'main.js'))).toBe(true);
       done();
@@ -66,7 +66,7 @@ test('options.repo will have higher priority', done => {
     repo: REPO,
     pathname: 'example/main.js',
     target: TARGET4,
-    mockTree,
+    tree: mockTree,
   }).then(() => {
       expect(fs.existsSync(path.join(TARGET4, 'main.js'))).toBe(true);
       done();
