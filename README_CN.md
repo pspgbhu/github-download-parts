@@ -9,14 +9,13 @@
 
 它可以下载 Github 仓库的中部分文件或文件夹
 
-## 指南
+## 使用
 
-从 Github 仓库中下载一个文件夹或者单文件
+- 下载单个文件
 
 ```js
 const repo = require('github-download-parts');
 
-// 下载单文件
 // 将会把 index.js 文件下载到本地的 target 文件夹中
 repo('pspgbhu/github-download-parts', 'target', 'index.js')
   .then(() => {
@@ -24,9 +23,14 @@ repo('pspgbhu/github-download-parts', 'target', 'index.js')
   })
   .catch(() => {
     console.log('download error');
-  });
+  }
+```
 
-// 下载一个文件夹
+- 下载一个文件夹
+
+```js
+const repo = require('github-download-parts);
+
 // 将会把 test 文件夹下的全部文件都下载到本地的 target 文件夹中
 repo('pspgbhu/github-download-parts', 'target', 'test')
   .then(() => {
@@ -36,6 +40,22 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
     console.log('download error');
   });
 ```
+
+- 下载完整的仓库
+
+```js
+const repo = require('github-download-parts);
+
+// 将整个仓库都下载到本地的 target 文件夹中
+repo('pspgbhu/github-download-parts', 'target')
+  .then(() => {
+    console.log('download success');
+  })
+  .catch(() => {
+    console.log('download error');
+  });
+```
+
 ## API
 
 ### repo(options [, target ,pathname])
@@ -44,13 +64,6 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
 
   可以输入一个字符串作为参数，格式为 `"${username}/${repository}"`
 
-- **options** `<object>`
-  - **username** `<string>`: Github 的用户名
-  - **repository** `<string>`: 仓库的名称.
-  - **repo** `<string>`: `username` 和 `repository` 属性的简写，格式为 `"${username}/${repository}"`
-  - **target** `<string>`: 下载的文件将会被创建至该本地文件夹内
-  - **pathname** `<string>`: Github 中将要被下载的文件或者文件夹的一个相对路径
-
 - **target** `<string>`
 
   下载的文件将会被创建至该本地文件夹内
@@ -58,6 +71,16 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
 - **pathname** `<string>`
 
   Github 中将要被下载的文件或者文件夹的一个相对路径
+
+或者，你可以使用一个对象来作为 `options` 参数
+
+- **options** `<object>`
+  - **username** `<string>`: Github 的用户名
+  - **repository** `<string>`: 仓库的名称.
+  - **repo** `<string>`: `username` 和 `repository` 属性的简写，格式为 `"${username}/${repository}"`
+  - **target** `<string>`: 下载的文件将会被创建至该本地文件夹内
+  - **pathname** `<string>`: Github 中将要被下载的文件或者文件夹的一个相对路径
+
 
 ## 限制
 

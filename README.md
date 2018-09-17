@@ -10,14 +10,13 @@ English | [简体中文](./README_CN.md)
 It is able to download a partial of repository!
 
 
-## Guide
+## Usage
 
-Download a folder or file from github repository.
+- Download a single file
 
 ```js
 const repo = require('github-download-parts');
 
-// download a single file
 // download the `index.js` file to `target` folder
 repo('pspgbhu/github-download-parts', 'target', 'index.js')
   .then(() => {
@@ -25,9 +24,14 @@ repo('pspgbhu/github-download-parts', 'target', 'index.js')
   })
   .catch(() => {
     console.log('download error');
-  });
+  }
+```
 
-// download a folder
+- Download a folder
+
+```js
+const repo = require('github-download-parts);
+
 // download all files in the `test` folder of github repository to the local `target` folder.
 repo('pspgbhu/github-download-parts', 'target', 'test')
   .then(() => {
@@ -37,6 +41,22 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
     console.log('download error');
   });
 ```
+
+- Download a whole repository
+
+```js
+const repo = require('github-download-parts);
+
+// download the whole repository into target local folder
+repo('pspgbhu/github-download-parts', 'target')
+  .then(() => {
+    console.log('download success');
+  })
+  .catch(() => {
+    console.log('download error');
+  });
+```
+
 ## API
 
 ### repo(options [, target ,pathname])
@@ -45,13 +65,6 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
 
   Could input a string as the options, the format is `"${username}/${repository}"`.
 
-- **options** `<object>`
-  - **username** `<string>`: The username of github.
-  - **repository** `<string>`: The name of the repository.
-  - **repo** `<string>`: The shorthand for `username` and `repository`, the format is `"${username}/respository"`
-  - **target** `<string>`: The local folder path that files will be created into.
-  - **pathname** `<string>`: A file or folder path of github repository.
-
 - **target** `<string>`
 
   The local folder path that files will be created into.
@@ -59,6 +72,16 @@ repo('pspgbhu/github-download-parts', 'target', 'test')
 - **pathname** `<string>`
 
   A file or folder path of github repository.
+
+Or you could use a object as the `options` parameter
+
+- **options** `<object>`
+  - **username** `<string>`: The username of github.
+  - **repository** `<string>`: The name of the repository.
+  - **repo** `<string>`: The shorthand for `username` and `repository`, the format is `"${username}/${respository}"`
+  - **target** `<string>`: The local folder path that files will be created into.
+  - **pathname** `<string>`: A file or folder path of github repository.
+
 
 ## Download Limiting
 Because of Github API Rate Limiting, every IP only be allowed 60 requests per hour, So **every IP just only could download 60 times per hour**.
