@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const program = require('commander');
+const ora = require('ora');
+const repo = require('../');
+const chalk = require('chalk');
+const debug = require('debug')('github-download-parts');
+
+program
+  .version(require('../package.json').version, '-v --version')
+  .on('--help', () => {
+    console.log('')
+    console.log('Examples:');
+    console.log('')
+    console.log('  - Download a file or folder form someone github repository');
+    console.log('')
+    console.log('    $ repo -r "username/repository" -t local_folder -p target_file.js');
+    console.log('')
+    console.log('  - Download the whole repository');
+    console.log('')
+    console.log('    $ repo -r "username/repository" -t local_folder');
+    console.log('')
+  })
+  .option('-r --repo <repo>', 'github repository, the format is "${username}/${repository}"')
+  .option('-t --target <dir>', 'the local directory that files will be created into')
+  .option('-p --pathname <path>', 'a file or folder path of github repository')
+  .option('--mock <path>', 'mock a tree data by a json file')
+  .parse(process.argv);
+
+if (!program.repo) {
+  throw new Error('Expect -r <repo>. For example, repo -r "pspgbhu/github-download-parts"');
+}
+
+let mockTree;
+
+if (program.mock) {
+  try {
+    mockTree = require(path.resolve(program.mock)).tree;
+  } catch(e) {}
+}
+
+spinner = ora('Downloading');
+spinner.start();
+
+repo(program.repo, program.target, program.pathname, mockTree).then(() => {
+  spinner.stop()
+  console.log(chalk.green('Downloading success!'));
+}).catch(e => {
+  spinner.stop()
+  console.log(chalk.red(e));
+});

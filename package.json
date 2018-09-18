@@ -5,6 +5,9 @@
   "main": "index.js",
   "author": "pspgbhu <brotherchun001@gmial.com> (http://pspgbhu.me)",
   "license": "MIT",
+  "bin": {
+    "repo": "./bin/repo"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/pspgbhu/github-download-parts"
@@ -15,7 +18,10 @@
     "test": "DEBUG=github-download-parts jest"
   },
   "dependencies": {
+    "chalk": "^2.4.1",
+    "commander": "^2.18.0",
     "debug": "^3.1.0",
+    "ora": "^3.0.0",
     "request": "^2.88.0"
   },
   "engines": {

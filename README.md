@@ -82,8 +82,42 @@ Or you could use a object as the `options` parameter
   - **target** `<string>`: The local folder path that files will be created into.
   - **pathname** `<string>`: A file or folder path of github repository.
 
+## CLI
+
+### Install
+
+```bash
+# Install the package
+$ npm i -g github-download-parts
+
+# Show more information about github-download-parts cli
+$ repo -h
+```
+
+### Example
+
+- Download a file or folder form someone github repository
+
+```bash
+$ repo -r "username/repository" -t local_folder -p target_file.js
+```
+
+- Download the whole repository
+
+```bash
+$ repo -r "username/repository" -t local_folder
+```
+
+### Options
+
+- `-r --repo <repo>`: Github repository, the format is `"${username}/${repository}"`
+
+- `-t --target <dir>`: The local directory that files will be created into
+
+- `-p --pathname <path>`: The file or folder path of github repository you want to download
 
 ## Download Limiting
+
 Because of Github API Rate Limiting, every IP only be allowed 60 requests per hour, So **every IP just only could download 60 times per hour**.
 
 [Know More About Github Rate Limiting](https://developer.github.com/v3/#rate-limiting)

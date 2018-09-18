@@ -70,7 +70,7 @@ repo('pspgbhu/github-download-parts', 'target')
 
 - **pathname** `<string>`
 
-  Github 中将要被下载的文件或者文件夹的一个相对路径
+  被下载文件在 Github 仓库中的相对地址
 
 或者，你可以使用一个对象来作为 `options` 参数
 
@@ -79,8 +79,41 @@ repo('pspgbhu/github-download-parts', 'target')
   - **repository** `<string>`: 仓库的名称.
   - **repo** `<string>`: `username` 和 `repository` 属性的简写，格式为 `"${username}/${repository}"`
   - **target** `<string>`: 下载的文件将会被创建至该本地文件夹内
-  - **pathname** `<string>`: Github 中将要被下载的文件或者文件夹的一个相对路径
+  - **pathname** `<string>`: 被下载文件在 Github 仓库中的相对地址
 
+## CLI
+
+### 安装
+
+```bash
+# 全局安装
+$ npm i -g github-download-parts
+
+# 查看 github-download-parts cli 更多帮助信息
+$ repo -h
+```
+
+### 示例
+
+- 从 Github 仓库中下载文件或文件夹
+
+```bash
+$ repo -r "username/repository" -t local_folder -p target_file.js
+```
+
+- 下载整个仓库
+
+```bash
+$ repo -r "username/repository" -t local_folder
+```
+
+### 选项参数
+
+- `-r --repo <repo>`: Github 仓库, 格式是 `"${username}/${repository}"`
+
+- `-t --target <dir>`:  下载的文件将会被创建至该本地文件夹内
+
+- `-p --pathname <path>`: 被下载文件在 Github 仓库中的相对地址
 
 ## 限制
 
