@@ -58,9 +58,9 @@ repo('pspgbhu/github-download-parts', 'target')
 
 ## API
 
-### repo(options [, target ,pathname])
+### repo(git, target ,pathname)
 
-- **options** `<string>`
+- **git** `<string>`
 
   可以输入一个字符串作为参数，格式为 `"${username}/${repository}"`
 
@@ -71,6 +71,8 @@ repo('pspgbhu/github-download-parts', 'target')
 - **pathname** `<string>`
 
   被下载文件在 Github 仓库中的相对地址
+
+### repo(options)
 
 或者，你可以使用一个对象来作为 `options` 参数
 
