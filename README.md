@@ -59,11 +59,11 @@ repo('pspgbhu/github-download-parts', 'target')
 
 ## API
 
-### repo(options [, target ,pathname])
+### repo(git, target ,pathname)
 
-- **options** `<string>`
+- **git** `<string>`
 
-  Could input a string as the options, the format is `"${username}/${repository}"`.
+  The git repository, the format of string is `"${username}/${repository}"`.
 
 - **target** `<string>`
 
@@ -73,6 +73,7 @@ repo('pspgbhu/github-download-parts', 'target')
 
   A file or folder path of github repository.
 
+### repo(options)
 Or you could use a object as the `options` parameter
 
 - **options** `<object>`
